@@ -1,0 +1,2198 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ملاحظة أمنية: script-src هنا مضطر لاحتواء 'unsafe-inline' لأن الصفحة تعتمد
+  بالكامل على onclick="" مضمّنة في كل مكان + كتلة <script> واحدة كبيرة، وليس
+  على nonce/hash عملي مع محتوى يُبنى ديناميكياً. هذا يعني أن CSP وحدها لا
+  تمنع ثغرات XSS عبر onclick (ذلك أُصلح بالتهريب الصحيح للقيم في الكود نفسه)،
+  لكنها تُغلق مسارات أخرى: لا <object>/<embed>، لا اختطاف عبر وسم <base>،
+  لا تضمين الصفحة داخل iframe من موقع آخر، لا إرسال أي نموذج لخادم خارجي.
+  إغلاق ثغرة onclick بشكل كامل عبر CSP فعلياً يتطلب إعادة هيكلة أكبر
+  (استبدال onclick بـ data-id + addEventListener) بدل هذا الوصف السريع.
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';">
+<title>SONIC MARKET — سوق سونيك</title>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "OnlineStore",
+  "name": "Sonic Market — سوق سونيك",
+  "alternateName": "SONIC MARKET",
+  "slogan": "بيع. بدّل. اكتشف. بسرعة سونيك.",
+  "description": "سوق إعلانات محلي سريع لبيع وتبديل الأغراض، تتم مراجعة كل إعلان قبل نشره.",
+  "inLanguage": "ar",
+  "areaServed": "DZ",
+  "priceRange": "متغيّر",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://sonic-market.example/?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  },
+  "makesOffer": {
+    "@type": "OfferCatalog",
+    "name": "فئات السوق",
+    "itemListElement": [
+      { "@type": "Offer", "category": "إلكترونيات" },
+      { "@type": "Offer", "category": "ملابس" },
+      { "@type": "Offer", "category": "أثاث" },
+      { "@type": "Offer", "category": "كتب وقرطاسية" },
+      { "@type": "Offer", "category": "ألعاب" },
+      { "@type": "Offer", "category": "رياضة" }
+    ]
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Lalezar&family=Reem+Kufi:wght@400..700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   SONIC MARKET — DESIGN SYSTEM
+   One coherent pass: signal/arcade identity (deep navy · electric
+   cyan · violet · gold) for brand chrome, calm glass daylight for
+   browsing surfaces. Lalezar carries headline character, Cairo reads
+   body text, JetBrains Mono renders every price/number/code.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  /* brand ink */
+  --navy-950:#03081c; --navy-900:#070f2b; --navy-800:#0e1c4a;
+  --blue-1:#0c5dff; --blue-2:#3d8bff; --cyan-1:#22e6ff;
+  --violet-1:#7b6bff; --gold-1:#ffcf3f; --gold-2:#ff9f43; --coral-1:#ff4d6a;
+  --green:#20d486; --red:#ff4057;
+  /* content ink */
+  --ink-900:#06163d; --ink-700:#233a63; --ink-600:#5b6b8c; --ink-400:#8393b8; --ink-300:#aab7d4;
+  --line:#e2eaff; --line-soft:#eef3ff;
+  /* surfaces */
+  --paper:#f3f7ff; --surface:#ffffff; --surface-tint:#f8faff;
+  /* legacy aliases kept so any un-migrated rule still resolves */
+  --blue:#0c5dff; --blue-dark:#06163d; --blue-mid:#3d8bff; --blue-light:#5B93FF;
+  --cyan:#22e6ff; --gold:#ffcf3f; --bg:#f3f7ff; --glass:rgba(255,255,255,.78);
+  /* system */
+  --r-xs:10px; --r-sm:12px; --r-md:16px; --r-lg:20px; --r-xl:28px;
+  --shadow-1:0 2px 6px rgba(11,31,77,.05);
+  --shadow-2:0 10px 24px -10px rgba(11,45,110,.20);
+  --shadow-3:0 20px 46px -18px rgba(11,45,110,.30);
+  --card-shadow:var(--shadow-1),var(--shadow-2);
+  --ease:cubic-bezier(.22,.9,.32,1); --ease-snap:cubic-bezier(.34,1.56,.64,1);
+  --ring:0 0 0 3px rgba(34,230,255,.35);
+  --display:'Lalezar','Reem Kufi','Cairo',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Cairo',sans-serif; color:var(--ink-900); min-height:100vh;
+  -webkit-font-smoothing:antialiased; touch-action:manipulation; overscroll-behavior-y:none;
+  background:
+    radial-gradient(ellipse 60% 40% at 10% -5%, rgba(34,230,255,.15), transparent 60%),
+    radial-gradient(ellipse 55% 45% at 105% 8%, rgba(255,207,63,.14), transparent 55%),
+    radial-gradient(ellipse 60% 50% at 50% 115%, rgba(123,107,255,.09), transparent 60%),
+    linear-gradient(180deg,#eef4ff 0%, #f5f8ff 45%, #eef3ff 100%);
+  background-attachment:fixed;
+}
+::-webkit-scrollbar{width:8px;} ::-webkit-scrollbar-thumb{background:linear-gradient(#b9cdf5,#c3d4f7);border-radius:10px;}
+::selection{background:rgba(12,93,255,.22);color:var(--navy-950);}
+:focus-visible{outline:2px solid var(--cyan-1);outline-offset:2px;border-radius:6px;}
+*,*::before,*::after{transition-timing-function:var(--ease);}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition:none!important;}}
+
+h1,h2,h3,h4,.brand-name,.hero-big,.cc-head b,.admin-header h2{font-family:var(--display);font-weight:400;letter-spacing:.3px;}
+.card h3,.modal h2,.detail h2,.admin-row .info h4{font-family:var(--display);font-weight:400;letter-spacing:.2px;}
+.price,.price.trade,.stat-pill b,.cc-number,.big-number,.stat-card .num,.health-box b,.profile-stat b{font-family:var(--mono);font-variant-numeric:tabular-nums;}
+
+/* ───────── layout ───────── */
+.container{max-width:920px;margin:0 auto;padding:16px 14px 110px;}
+.app-shell{min-height:100vh;}
+.no-scroll{overflow:hidden;}
+.top-progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:9999;background:linear-gradient(90deg,var(--cyan-1),var(--blue-1),var(--gold-1));box-shadow:0 0 12px #00bfff;transition:width .08s linear;}
+
+/* ───────── hero / brand ───────── */
+.hero{
+  color:#fff; padding:20px 18px 24px; position:sticky; top:0; z-index:30; overflow:hidden;
+  border-radius:0 0 32px 32px; border-bottom:1px solid rgba(255,255,255,.08);
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(34,230,255,.22), transparent 55%),
+    radial-gradient(90% 120% at 0% 100%, rgba(255,207,63,.16), transparent 50%),
+    linear-gradient(155deg, var(--navy-950) 0%, var(--navy-800) 48%, var(--blue-1) 100%);
+  box-shadow:0 18px 40px rgba(3,10,35,.38), inset 0 -1px 0 rgba(255,255,255,.06);
+}
+.hero::after{
+  content:""; position:absolute; width:220px; height:220px; left:-90px; bottom:-140px;
+  border:26px solid rgba(255,255,255,.07); border-radius:50%; pointer-events:none;
+  box-shadow:0 0 0 20px rgba(34,230,255,.05),0 0 0 46px rgba(255,207,63,.035);
+}
+.hero::before{
+  content:""; position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.4;
+  background-image:repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 26px);
+  mask-image:linear-gradient(180deg, rgba(0,0,0,.5), transparent 75%);
+}
+.hero-top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;}
+.hero-top::before{
+  content:""; position:absolute; inset:-8px -4px auto auto; width:130px; height:60px; z-index:0;
+  background-image:repeating-linear-gradient(-35deg, rgba(255,255,255,.10) 0 2px, transparent 2px 9px);
+  mask-image:linear-gradient(-35deg, transparent 10%, #000 55%, transparent 95%); pointer-events:none;
+}
+.brand{display:flex;align-items:center;gap:11px;}
+.logo-ring{
+  width:46px;height:46px;border-radius:50%;flex-shrink:0;position:relative;overflow:visible;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(150deg,#0c1c4d,#0a3ea8);
+  box-shadow:0 0 0 4px rgba(255,255,255,.14), 0 6px 16px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.1);
+}
+.logo-ring::before{
+  content:""; position:absolute; inset:-5px; border-radius:50%;
+  background:conic-gradient(from 0deg, transparent 0deg, rgba(255,207,63,.95) 26deg, transparent 100deg, transparent 260deg, rgba(34,230,255,.7) 300deg, transparent 360deg);
+  animation:spin 3.2s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.logo-mark{filter:drop-shadow(0 0 6px rgba(34,230,255,.55));animation:boltPulse 2.6s ease-in-out infinite;}
+@keyframes boltPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(34,230,255,.4))}50%{filter:drop-shadow(0 0 9px rgba(255,207,63,.55))}}
+.brand-name{font-size:22px;line-height:1.15;}
+.brand-tag{font-size:11.5px;opacity:.8;font-weight:600;margin-top:2px;letter-spacing:.15px;}
+.stat-pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(4px);border-radius:14px;padding:6px 12px;font-size:11.5px;font-weight:700;text-align:center;transition:transform .35s var(--ease-snap);}
+.stat-pill:active{transform:scale(.94);}
+.stat-pill b{display:block;font-size:16px;}
+
+.tabs{display:flex;gap:8px;margin-top:16px;position:relative;z-index:1;}
+.tab-btn{
+  flex:1;padding:10px 8px;border:1px solid rgba(255,255,255,.12);border-radius:14px;font-family:inherit;
+  font-weight:800;font-size:13.5px;cursor:pointer;background:rgba(255,255,255,.1);color:#fff;
+  display:flex;align-items:center;justify-content:center;gap:6px;position:relative;
+  transition:background .25s var(--ease),color .25s var(--ease),box-shadow .25s var(--ease);
+}
+.tab-btn.active{background:#fff;color:var(--navy-950);box-shadow:0 6px 16px rgba(0,0,0,.22), 0 0 0 1px rgba(12,93,255,.08);}
+.tab-btn:active{transform:scale(.96);}
+.mini-chip{background:var(--red);color:#fff;font-size:10px;font-weight:900;border-radius:20px;padding:1px 6px;min-width:16px;}
+
+/* ───────── search / filters ───────── */
+.search-row{display:flex;gap:8px;margin-bottom:14px;}
+.search-box{flex:1;position:relative;}
+.search-box input{width:100%;font-family:inherit;border:2px solid var(--line);border-radius:14px;padding:11px 38px 11px 14px;font-size:14px;background:var(--surface);box-shadow:var(--card-shadow);}
+.search-box input:focus{outline:none;border-color:var(--blue-2);box-shadow:var(--ring);}
+.search-box .sicon{position:absolute;right:12px;top:50%;transform:translateY(-50%);opacity:.5;}
+.search-row select,.admin-search{font-family:inherit;border:2px solid var(--line);border-radius:14px;padding:11px 10px;font-size:13.5px;background:var(--surface);box-shadow:var(--card-shadow);}
+.search-row select{max-width:118px;}
+.admin-search{width:100%;}
+.search-row input:focus,.admin-search:focus{outline:none;border-color:var(--blue-2);box-shadow:var(--ring);}
+
+.market-toolbar{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin:2px 0 10px;}
+.market-toolbar.sticky{position:sticky;top:6px;z-index:20;padding:8px;border-radius:17px;background:rgba(248,251,255,.8);backdrop-filter:blur(14px);box-shadow:0 8px 25px rgba(8,47,110,.08);}
+.toolbar-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink-700);border-radius:12px;min-height:42px;padding:0 12px;font:800 12px Cairo;cursor:pointer;box-shadow:0 5px 15px rgba(12,50,110,.06);}
+.toolbar-btn.primary{background:linear-gradient(115deg,var(--blue-1),var(--cyan-1));color:#fff;border:0;}
+.quick-bar{display:flex;gap:8px;overflow:auto;padding:2px 0 12px;scrollbar-width:none;}
+.quick-bar::-webkit-scrollbar{display:none;}
+.quick-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:700;background:var(--surface);border:2px solid var(--line);color:var(--ink-900);cursor:pointer;white-space:nowrap;}
+.quick-btn.active,.cat-chip.active{background:linear-gradient(115deg,var(--blue-1),var(--cyan-1));border-color:transparent;color:#fff;}
+.cat-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none;}
+.cat-scroll::-webkit-scrollbar{display:none;}
+.cat-chip{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:700;background:var(--surface);border:2px solid var(--line);color:var(--ink-900);cursor:pointer;white-space:nowrap;transition:background .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease);}
+
+/* ───────── grid / cards ───────── */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(min-width:560px){.grid{grid-template-columns:1fr 1fr 1fr;}}
+.card{
+  background:linear-gradient(180deg,#fff,#fbfdff);border-radius:20px;padding:11px;overflow:hidden;isolation:isolate;
+  border:1px solid rgba(255,255,255,.9); box-shadow:var(--shadow-1),0 14px 30px -12px rgba(11,45,110,.16);
+  display:flex;flex-direction:column;gap:6px;position:relative;cursor:pointer;
+  transition:transform .32s var(--ease),box-shadow .32s var(--ease);
+}
+.card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;border:1px solid rgba(255,255,255,.65);box-shadow:inset 0 0 0 1px rgba(18,100,255,.03);}
+.card:hover{transform:translateY(-5px);box-shadow:var(--shadow-1),0 26px 46px -16px rgba(11,45,110,.26);}
+.card:active{transform:translateY(-1px) scale(.985);}
+.card .seller-line{display:flex;align-items:center;gap:5px;color:#8797b7;font-size:9.5px;font-weight:800;}
+.verified{color:#0b9fda;}
+.thumb{width:100%;aspect-ratio:1/1;border-radius:13px;background:radial-gradient(circle at 30% 20%,rgba(34,230,255,.22),transparent 45%),linear-gradient(150deg,#dfeaff,#f7faff);display:flex;align-items:center;justify-content:center;font-size:38px;overflow:hidden;position:relative;}
+.thumb img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease,filter .4s ease;}
+.card:hover .thumb img{transform:scale(1.035);filter:saturate(1.08);}
+.badge{position:absolute;top:19px;right:19px;font-size:10.5px;font-weight:900;padding:4px 10px;border-radius:20px;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;gap:3px;backdrop-filter:blur(3px);letter-spacing:.2px;}
+.badge.sale{background:linear-gradient(120deg,var(--blue-1),var(--cyan-1));}
+.badge.trade{background:linear-gradient(120deg,var(--gold-1),var(--gold-2));color:#5c3d00;}
+.card .fav{position:absolute;left:18px;top:18px;z-index:2;width:34px;height:34px;border:0;border-radius:50%;background:rgba(255,255,255,.9);backdrop-filter:blur(6px);box-shadow:0 4px 12px rgba(0,0,0,.12);cursor:pointer;font-size:17px;}
+.card .fav.active{color:#ff3150;}
+.card .live-badge{position:absolute;right:18px;top:18px;z-index:2;padding:4px 7px;border-radius:9px;background:rgba(255,255,255,.88);font-size:9px;font-weight:900;color:#11895c;}
+.card h3{margin:2px 0 0;font-size:14.5px;color:var(--ink-900);line-height:1.3;}
+.card p.desc{margin:0;font-size:11.5px;color:#5e6f92;line-height:1.4;min-height:15px;max-height:30px;overflow:hidden;}
+.card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:2px;}
+.price{font-weight:900;color:var(--red);font-size:13.5px;}
+.price.trade{color:#b8720b;font-size:12px;font-weight:900;}
+.contact-btn{background:linear-gradient(115deg,var(--navy-950),var(--blue-1));color:#fff;border:none;width:100%;padding:9px;border-radius:11px;font-family:inherit;font-weight:800;font-size:12px;cursor:pointer;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 6px 16px rgba(10,40,120,.22);transition:transform .18s var(--ease-snap),filter .18s var(--ease);}
+.contact-btn:hover{filter:brightness(1.06);}
+.contact-btn:active{transform:scale(.96);}
+.contact-btn.disabled{opacity:.45;}
+.contact-btn.wa{background:linear-gradient(120deg,#0fa968,#22e6ac);}
+.card-actions{display:flex;gap:6px;margin-top:2px;}
+.card-actions .contact-btn{width:auto;flex:1;margin-top:0;}
+
+/* sale vs trade dual identity */
+:root{--sale-a:#0b63ff;--sale-b:#00d4ff;--sale-glow:rgba(11,99,255,.35);--trade-a:#ff9d1f;--trade-b:#ffd43b;--trade-glow:rgba(255,157,31,.35);}
+.card.type-sale{border-color:rgba(11,99,255,.18);}
+.card.type-trade{border-color:rgba(255,157,31,.22);}
+.card.type-sale::before,.card.type-trade::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;z-index:2;}
+.card.type-sale::before{background:linear-gradient(90deg,var(--sale-a),var(--sale-b));}
+.card.type-trade::before{background:repeating-linear-gradient(90deg,var(--trade-a) 0 10px,var(--trade-b) 10px 20px);}
+.card.type-trade .thumb{background:radial-gradient(circle at 30% 20%,rgba(255,157,31,.16),transparent 60%),linear-gradient(135deg,#fff3dd,#fffaf0);}
+.card .ribbon{position:absolute;top:16px;left:-1px;z-index:3;font:900 10px Cairo;color:#fff;padding:5px 12px 5px 10px;border-radius:0 8px 8px 0;letter-spacing:.2px;box-shadow:0 4px 10px rgba(0,0,0,.18);display:flex;align-items:center;gap:4px;}
+.card.type-sale .ribbon{background:linear-gradient(115deg,var(--sale-a),var(--sale-b));}
+.card.type-trade .ribbon{background:linear-gradient(115deg,var(--trade-a),var(--trade-b));color:#4a2e00;}
+.card.type-trade .badge.trade i{display:inline-block;animation:swapspin 2.2s linear infinite;}
+@keyframes swapspin{0%,70%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+.live-stats{display:flex;align-items:center;gap:5px;margin-top:4px;flex-wrap:wrap;}
+.live-stats .ls-chip{display:inline-flex;align-items:center;gap:3px;font:900 9px Cairo;padding:3px 7px;border-radius:99px;background:rgba(11,99,255,.09);color:#0b4fc9;}
+.ls-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(32,212,134,.18);flex-shrink:0;}
+.ls-chip.hot{background:linear-gradient(120deg,#ff4057,#ff7a45)!important;color:#fff!important;}
+
+/* ───────── buttons ───────── */
+.btn-main{width:100%;padding:13px;border:none;border-radius:14px;background:linear-gradient(115deg,var(--blue-1),var(--cyan-1));color:#fff;font-family:inherit;font-weight:900;font-size:15px;cursor:pointer;margin-top:8px;position:relative;overflow:hidden;box-shadow:0 10px 22px rgba(12,93,255,.3), inset 0 1px 0 rgba(255,255,255,.25);transition:transform .18s var(--ease-snap),box-shadow .25s var(--ease);}
+.btn-main::before,.fab::before,.toolbar-btn.primary::before{content:"";position:absolute;inset:0 0 55% 0;background:linear-gradient(180deg,rgba(255,255,255,.22),transparent);pointer-events:none;}
+.btn-main:hover{box-shadow:0 12px 26px rgba(12,93,255,.38),inset 0 1px 0 rgba(255,255,255,.3);}
+.btn-main:active{transform:scale(.98);}
+.btn-ghost{width:100%;padding:11px;border:2px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink-600);font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer;margin-top:9px;transition:border-color .2s var(--ease),background .2s var(--ease),color .2s var(--ease);}
+.btn-ghost:hover{border-color:var(--blue-1);color:var(--navy-950);}
+.icon-btn{border:none;border-radius:10px;width:34px;height:34px;font-size:15px;cursor:pointer;transition:transform .15s;}
+.icon-btn:active{transform:scale(.9);}
+.icon-btn.ok{background:#dff5e3;color:#1a8a3d;}
+.icon-btn.no{background:#ffe3e3;color:var(--red);}
+.icon-btn.mid{background:#eef2ff;color:#2b4b9e;}
+.logout-btn{border:2px solid #ffd9d9;background:#fff3f3;color:var(--red);font-family:inherit;font-weight:800;font-size:12.5px;padding:8px 14px;border-radius:12px;cursor:pointer;}
+.report-btn{color:#d8344b!important;background:#fff1f3!important;border-color:#ffd4da!important;}
+.share-row{display:flex;gap:8px;margin-top:8px;}
+.share-row button{flex:1;}
+
+/* ───────── fab ───────── */
+.fab{
+  position:fixed;bottom:24px;left:22px;width:64px;height:64px;border-radius:50%;color:#fff;font-size:30px;font-weight:900;
+  border:3px solid #fff;cursor:pointer;z-index:40;display:flex;align-items:center;justify-content:center;position:fixed;
+  background:linear-gradient(140deg,var(--coral-1),var(--gold-2));
+  box-shadow:0 12px 30px rgba(255,60,90,.4), inset 0 1px 0 rgba(255,255,255,.35);
+  animation:pulse 2.4s ease-in-out infinite, fabSettle .5s var(--ease-snap);
+}
+.fab::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:1px solid rgba(255,255,255,.5);animation:fabRing 2.4s ease-out infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 12px 30px rgba(255,60,90,.4), inset 0 1px 0 rgba(255,255,255,.35);}50%{box-shadow:0 8px 30px rgba(255,59,59,.75), 0 0 0 8px rgba(255,59,59,.12);}}
+@keyframes fabRing{0%{transform:scale(.8);opacity:.8}70%,100%{transform:scale(1.25);opacity:0}}
+@keyframes fabSettle{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+.fab:active{transform:scale(.92);}
+@media(prefers-reduced-motion:reduce){.btn-main::before,.fab::before,.toolbar-btn.primary::before{display:none;}}
+
+/* ───────── modal / forms ───────── */
+.modal-bg{position:fixed;inset:0;background:rgba(7,24,66,.6);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;z-index:50;animation:fadeIn .15s ease-out;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.modal{background:#fff;width:100%;max-width:540px;border-radius:28px 28px 0 0;padding:20px 20px 26px;max-height:90vh;overflow-y:auto;box-shadow:0 -20px 60px rgba(3,15,50,.3);animation:up .3s var(--ease);}
+@keyframes up{from{transform:translateY(40px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-handle{width:40px;height:4px;background:linear-gradient(90deg,#dce6fb,#c7d8fb);border-radius:10px;margin:0 auto 14px;opacity:.8;}
+.modal h2{margin:0 0 16px;color:var(--ink-900);font-size:19px;display:flex;align-items:center;gap:8px;}
+.field{margin-bottom:13px;}
+.field label{display:block;font-size:12.5px;font-weight:800;margin-bottom:6px;color:var(--ink-700);}
+.field input,.field select,.field textarea{width:100%;font-family:inherit;border:2px solid var(--line-soft);border-radius:12px;padding:10px 12px;font-size:14px;background:var(--surface-tint);transition:border-color .2s var(--ease),background .2s var(--ease),box-shadow .2s var(--ease);}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--blue-2);background:#fff;box-shadow:var(--ring);}
+.field textarea{resize:vertical;min-height:64px;}
+.radio-row{display:flex;gap:10px;}
+.radio-opt{flex:1;border:2px solid var(--line-soft);border-radius:12px;padding:11px;text-align:center;cursor:pointer;font-weight:800;font-size:13.5px;color:var(--ink-400);transition:border-color .2s var(--ease),background .2s var(--ease),transform .18s var(--ease-snap);}
+.radio-opt:active{transform:scale(.97);}
+.radio-opt.selected,.radio-opt.selected.sale{border-color:var(--blue-1);background:linear-gradient(120deg,#eaf3ff,#e2f7ff);color:var(--blue-1);}
+.radio-opt.selected.trade{border-color:var(--gold-1);background:linear-gradient(120deg,#fff8e2,#fff1cf);color:#8a6a00;}
+.radio-opt.rarity-opt{border-color:var(--line-soft);color:var(--ink-400);}
+.radio-opt.rarity-opt.selected{border-color:var(--r-accent);background:var(--r-tint);color:var(--r-text);box-shadow:0 4px 12px rgba(0,0,0,.08);}
+.payment-choice{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:6px;}
+.payment-choice .pay-opt{border:2px solid var(--line-soft);border-radius:13px;padding:11px 9px;text-align:center;cursor:pointer;font-weight:900;font-size:12.5px;color:var(--ink-400);background:#fff;transition:border-color .2s var(--ease),background .2s var(--ease),transform .18s var(--ease-snap);}
+.payment-choice .pay-opt:active,.payment-store-grid .store-opt:active{transform:scale(.97);}
+.payment-choice .pay-opt.selected{border-color:var(--blue-1);background:#edf5ff;color:#0756e8;box-shadow:0 4px 12px rgba(11,99,255,.12);}
+.payment-store-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px;}
+.payment-store-grid .store-opt{border:1px solid var(--line);background:var(--surface-tint);border-radius:10px;padding:8px 6px;text-align:center;font:800 10.5px Cairo;color:var(--ink-700);cursor:pointer;transition:border-color .2s var(--ease),background .2s var(--ease);}
+.payment-store-grid .store-opt.selected{border-color:var(--blue-1);background:#eaf3ff;color:#0756e8;box-shadow:0 3px 9px rgba(11,99,255,.10);}
+.payment-bank-note{font-size:10px;color:var(--ink-400);margin-top:5px;font-weight:700;line-height:1.6;}
+.ff-code-box{margin-top:10px;padding:11px;border:1px solid var(--line);border-radius:14px;background:var(--surface-tint);}
+.ff-code-box>b{display:block;font-size:12px;color:#17345f;margin-bottom:3px;}
+.ff-code-box>small{display:block;font-size:9px;color:var(--ink-400);margin-bottom:8px;line-height:1.6;}
+.ff-code-row{display:flex;align-items:center;gap:7px;margin-top:7px;}
+.ff-code-row>span{width:25px;height:25px;border-radius:8px;background:#eaf2ff;color:#0756e8;display:flex;align-items:center;justify-content:center;font:900 10px Cairo;flex-shrink:0;}
+.ff-code-row input{flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 9px;font:600 11px var(--mono);direction:ltr;text-align:left;background:#fff;}
+.ff-code-row.required input{border-color:#b9d5ff;}
+.ff-code-row input:disabled{background:#eef2f7;color:#a6b1c4;}
+.admin-code-list{margin-top:7px;padding:8px;border:1px solid var(--line-soft);border-radius:10px;background:var(--surface-tint);}
+.admin-code-list>b{display:block;font-size:10px;color:#17345f;margin-bottom:5px;}
+.admin-code-list>div{display:flex;gap:6px;align-items:center;margin-top:4px;font-size:9px;}
+.admin-code-list>div>span{min-width:22px;color:var(--ink-400);font-weight:900;}
+.admin-code-list code{direction:ltr;unicode-bidi:plaintext;background:#fff;border:1px solid var(--line);border-radius:7px;padding:4px 6px;font:600 9px var(--mono);word-break:break-all;}
+.img-preview{width:64px;height:64px;object-fit:cover;border-radius:12px;border:2px solid var(--line-soft);}
+@media(max-width:380px){.payment-store-grid{grid-template-columns:1fr;}}
+
+/* ───────── empty / loading ───────── */
+.empty{text-align:center;padding:60px 20px;color:#7284a3;}
+.empty .emoji{font-size:46px;margin-bottom:8px;}
+.empty b{color:var(--ink-900);display:block;margin-bottom:4px;font-size:14.5px;}
+.empty-premium{grid-column:1/-1;text-align:center;padding:42px 16px;border:1px dashed #cbdaf2;border-radius:22px;background:rgba(255,255,255,.55);color:#7284a3;}
+.empty-premium .e-icon{font-size:44px;margin-bottom:4px;}
+.skel-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+@media(min-width:560px){.skel-grid{grid-template-columns:1fr 1fr 1fr;}}
+.skel-card{background:#fff;border-radius:18px;padding:11px;box-shadow:var(--card-shadow);}
+.skel-box,.skeleton{background:linear-gradient(90deg,#edf3fc 25%,#f8fbff 37%,#edf3fc 63%);background-size:400% 100%;animation:skeleton 1.3s ease infinite;border-radius:10px;}
+@keyframes skeleton{0%{background-position:100% 0;}100%{background-position:-100% 0;}}
+
+/* ───────── toast ───────── */
+.toast{position:fixed;bottom:24px;right:16px;left:16px;max-width:520px;margin:0 auto;background:linear-gradient(155deg,var(--navy-950),#0a1a4a);color:#fff;padding:13px 18px;border-radius:14px;font-weight:700;font-size:13.5px;text-align:center;z-index:999999999999;box-shadow:0 14px 34px rgba(3,10,35,.4),inset 0 1px 0 rgba(255,255,255,.08);animation:toastIn .2s ease-out;}
+@keyframes toastIn{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+/* ───────── detail view / gallery ───────── */
+.detail-bg{position:fixed;inset:0;background:rgba(3,17,49,.68);backdrop-filter:blur(8px);z-index:80;display:flex;align-items:center;justify-content:center;padding:15px;}
+.detail{width:min(560px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:26px;padding:14px;box-shadow:0 25px 80px rgba(0,0,0,.3);animation:up .22s ease-out;}
+.detail.type-sale{box-shadow:0 25px 80px rgba(11,60,150,.22),0 0 0 3px rgba(11,99,255,.08);}
+.detail.type-trade{box-shadow:0 25px 80px rgba(150,100,10,.22),0 0 0 3px rgba(255,157,31,.10);}
+.detail-image{width:100%;aspect-ratio:16/10;border-radius:20px;object-fit:cover;background:linear-gradient(135deg,#dceaff,#f8fbff);display:block;}
+.detail-close{position:absolute;margin:10px;width:38px;height:38px;border:0;border-radius:50%;background:rgba(255,255,255,.9);font-size:18px;cursor:pointer;z-index:2;}
+.detail-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;}
+.detail h2{font-size:21px;margin:8px 0 4px;}
+.detail-desc{color:#5e6f92;font-size:13px;line-height:1.75;white-space:pre-wrap;}
+.gallery{display:grid;grid-template-columns:1fr;gap:7px;}
+.gallery-main{position:relative;}
+.gallery-main img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:19px;}
+.gallery-thumbs{display:flex;gap:7px;overflow:auto;}
+.gallery-thumbs img{width:58px;height:45px;object-fit:cover;border-radius:9px;border:2px solid transparent;cursor:pointer;}
+.gallery-thumbs img.active{border-color:#1680ff;}
+.trust-note{padding:10px 12px;border-radius:13px;background:#eef6ff;color:#38639e;font-size:11px;font-weight:700;margin:10px 0;}
+.notice{border-radius:14px;padding:11px 13px;background:#fff8df;color:#725500;font-size:11px;font-weight:800;margin:10px 0;}
+.product-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px;}
+.product-actions button{border:1px solid var(--line);background:var(--surface-tint);border-radius:10px;padding:8px 4px;font:900 9px Cairo;cursor:pointer;}
+.product-actions button.primary{background:#086cff;color:#fff;border-color:#086cff;}
+.trust-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;}
+.trust-pill{padding:4px 7px;border-radius:99px;background:#eef6ff;color:#2162aa;font:900 8px Cairo;}
+.status-live{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:900;color:#138552;background:#e2fff1;padding:4px 8px;border-radius:20px;}
+.status-live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(32,212,134,.14);}
+.notification-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:#ff4057;border-radius:50%;border:2px solid #fff;}
+.perf-chip{font:900 8px Cairo;padding:4px 7px;border-radius:99px;background:#eaf2ff;color:#2160ad;}
+.flash{animation:flash .45s ease;} .pop{animation:pop .22s ease;}
+@keyframes flash{50%{filter:brightness(1.16);}}
+@keyframes pop{0%{transform:scale(.96);opacity:.4;}100%{transform:scale(1);opacity:1;}}
+
+/* trust / success sheet */
+.trust-success-bg{position:fixed;inset:0;background:rgba(3,17,49,.72);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;padding:18px;}
+.trust-success{width:min(420px,100%);background:#fff;border-radius:26px;padding:26px 22px;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.35);animation:up .25s var(--ease-snap);}
+.trust-success .ts-icon{width:70px;height:70px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;background:linear-gradient(135deg,var(--green),#0fae70);box-shadow:0 10px 26px rgba(32,212,134,.4);animation:pop .3s ease;}
+.trust-success h3{margin:0 0 10px;font-size:18px;color:var(--ink-900);}
+.trust-success p{margin:0 0 8px;font-size:12.5px;color:var(--ink-600);line-height:1.9;}
+.trust-success .ts-badge{display:inline-flex;align-items:center;gap:6px;background:#eef6ff;color:#0b4fc9;font:900 11px Cairo;padding:6px 12px;border-radius:99px;margin:8px 0 16px;}
+.trust-success button{width:100%;}
+.bottom-sheet-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+
+/* ───────── profile ───────── */
+.profile-strip{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:12px;color:#fff;border-radius:17px;background:linear-gradient(115deg,var(--navy-950),var(--blue-1));box-shadow:0 10px 24px rgba(5,20,70,.22);}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(150deg,#fff,#c9f3ff);color:#0756e8;font-weight:900;box-shadow:inset 0 0 0 2px rgba(12,93,255,.15);}
+.profile-strip small{display:block;opacity:.72;font-size:10px;} .profile-strip b{font-size:12.5px;}
+.stat-mini{margin-right:auto;text-align:center;background:rgba(255,255,255,.12);padding:5px 9px;border-radius:10px;} .stat-mini b{font-size:15px;display:block;} .stat-mini span{font-size:9px;opacity:.75;}
+.profile-head{padding:24px 18px;color:#fff;background:linear-gradient(120deg,var(--navy-950),#0756e8,#16a9ff);text-align:center;}
+.big-avatar{width:76px;height:76px;border-radius:50%;margin:0 auto 9px;background:#fff;color:#0756e8;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;}
+.profile-body{padding:16px;}
+.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.profile-stat{background:var(--paper);border-radius:13px;text-align:center;padding:10px;}
+.profile-stat b{display:block;font-size:17px;color:var(--ink-900);} .profile-stat span{font-size:9px;color:var(--ink-400);font-weight:800;}
+.recent-title{display:flex;align-items:center;justify-content:space-between;margin:12px 1px 7px;}
+.recent-title b{font-size:12px;color:#17345f;} .recent-title button{border:0;background:none;color:#0b66ff;font:800 9px Cairo;cursor:pointer;}
+.recent-row{display:flex;gap:8px;overflow:auto;padding-bottom:5px;scrollbar-width:none;}
+.recent-row::-webkit-scrollbar{display:none;}
+.recent-card{min-width:110px;width:110px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:6px;cursor:pointer;}
+.recent-card img,.recent-placeholder{width:100%;height:72px;border-radius:9px;object-fit:cover;background:#edf4ff;display:flex;align-items:center;justify-content:center;font-size:25px;}
+.recent-card b{display:block;font-size:9px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.recent-card small{font-size:8px;color:#8291ac;}
+
+/* ───────── home hero card ───────── */
+.home-hero-card{margin:10px 0;padding:15px;border-radius:20px;color:#fff;overflow:hidden;position:relative;box-shadow:0 13px 30px rgba(3,48,130,.19);
+  background:radial-gradient(120% 140% at 100% -10%, rgba(34,230,255,.28), transparent 55%),radial-gradient(80% 100% at -10% 120%, rgba(255,207,63,.2), transparent 55%),linear-gradient(140deg,var(--navy-950) 0%, var(--blue-1) 70%, var(--cyan-1) 130%);}
+.home-hero-card:after{content:"";position:absolute;width:160px;height:160px;border:20px solid rgba(255,255,255,.08);border-radius:50%;left:-65px;bottom:-110px;box-shadow:0 0 0 18px rgba(255,255,255,.05);}
+.hero-kicker{font-size:9px;font-weight:900;opacity:.72;letter-spacing:2.5px;text-transform:uppercase;font-family:var(--mono);}
+.hero-big{font-size:23px;margin:3px 0;letter-spacing:.2px;}
+.hero-sub{font-size:10px;opacity:.8;max-width:85%;}
+.hero-actions{display:flex;gap:7px;margin-top:11px;} .hero-actions button{border:0;border-radius:10px;padding:8px 10px;font:900 10px Cairo;cursor:pointer;}
+.hero-actions .a1{background:linear-gradient(115deg,#fff,#eaf6ff);color:var(--navy-950);font-weight:900;box-shadow:0 8px 18px rgba(0,0,0,.18);}
+
+/* ───────── admin ───────── */
+.admin-lock{text-align:center;padding:70px 20px;}
+.admin-lock .lock-circle{width:76px;height:76px;border-radius:50%;background:linear-gradient(140deg,var(--navy-950),var(--blue-1));display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 14px;box-shadow:0 10px 26px rgba(10,40,120,.3);}
+.admin-lock input{width:100%;max-width:260px;margin:16px auto 6px;display:block;text-align:center;border:2px solid var(--line);border-radius:12px;padding:12px;font-family:inherit;font-size:15px;}
+.admin-lock input:focus{outline:none;border-color:var(--blue-2);}
+.admin-stats{display:flex;gap:10px;margin:16px 0;}
+.stat-card,.dashboard-card{background:#fff;border-radius:16px;padding:14px 10px;text-align:center;box-shadow:var(--card-shadow);border:1px solid var(--line-soft);transition:box-shadow .25s var(--ease);}
+.stat-card:hover,.dashboard-card:hover{box-shadow:0 14px 30px -14px rgba(11,45,110,.24);}
+.stat-card{flex:1;}
+.stat-card .num{font-size:22px;} .stat-card .lbl{font-size:11px;font-weight:700;color:var(--ink-400);margin-top:2px;}
+.stat-card.pending .num{color:#d99b00;} .stat-card.approved .num{color:var(--green);} .stat-card.total .num{color:var(--blue-1);}
+.admin-header{display:flex;justify-content:space-between;align-items:center;margin-top:4px;}
+.admin-header h2{margin:0;font-size:17px;}
+.admin-section h3{font-size:13.5px;color:var(--ink-900);margin:20px 0 10px;font-weight:900;display:flex;align-items:center;gap:6px;}
+.admin-row{background:#fff;border-radius:16px;padding:12px;margin-bottom:10px;border:1px solid var(--line-soft);box-shadow:var(--card-shadow);display:flex;gap:11px;align-items:flex-start;}
+.thumb-sm{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#e2ecff,#f4f8ff);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;}
+.thumb-sm img{width:100%;height:100%;object-fit:cover;}
+.admin-row .info{flex:1;min-width:0;} .admin-row .info h4{margin:0 0 3px;font-size:13.5px;} .admin-row .info p{margin:0 0 2px;font-size:11.5px;color:var(--ink-600);}
+.admin-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+.admin-filter{display:flex;gap:7px;margin:10px 0;overflow:auto;}
+.admin-filter button,.admin-filter a{border:1px solid #dce7fb;background:#fff;border-radius:11px;padding:7px 10px;font:800 11px Cairo;cursor:pointer;white-space:nowrap;text-decoration:none;color:inherit;display:inline-flex;align-items:center;justify-content:center;}
+.admin-filter button.active,.admin-filter a.active{background:var(--navy-950);color:#fff;}
+.admin-bulk{display:flex;gap:7px;margin:9px 0;} .admin-bulk button{flex:1;border:0;border-radius:10px;padding:8px;font:800 11px Cairo;cursor:pointer;}
+.admin-health,.dashboard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0;}
+.dashboard-grid{grid-template-columns:repeat(2,1fr);padding:12px;}
+.health-box{background:var(--surface-tint);border:1px solid var(--line-soft);border-radius:12px;padding:9px;text-align:center;}
+.health-box b{display:block;font-size:17px;color:var(--ink-900);} .health-box span{font-size:9px;color:var(--ink-400);font-weight:800;}
+.dashboard-card h4{margin:0 0 7px;font-size:11px;color:#16345e;}
+.big-number{font-size:24px;color:#076dff;}
+.mini-bars{display:flex;align-items:flex-end;height:55px;gap:4px;} .mini-bars i{flex:1;border-radius:5px 5px 2px 2px;background:linear-gradient(#00d9ff,#076dff);min-height:6px;}
+.admin-activity{max-height:180px;overflow:auto;margin-top:8px;}
+.activity{display:flex;gap:7px;align-items:flex-start;padding:8px;border-bottom:1px solid var(--line-soft);font-size:9px;}
+.activity i{font-style:normal;font-size:15px;} .activity time{margin-right:auto;color:#9aa7bd;font-size:8px;}
+.security-box{background:linear-gradient(120deg,var(--navy-950),var(--blue-1));color:#fff;border-radius:16px;padding:11px;margin-top:10px;}
+.security-box b{display:block;font-size:11px;} .security-box span{font-size:9px;opacity:.72;}
+.full-screen-panel{position:fixed;inset:0;z-index:130;background:#f6f9ff;overflow:auto;}
+.full-screen-head{position:sticky;top:0;z-index:2;padding:11px 14px;background:rgba(255,255,255,.84);backdrop-filter:blur(14px);border-bottom:1px solid #e3eafa;display:flex;align-items:center;gap:8px;}
+.full-screen-head b{color:#092650;} .full-screen-head button{margin-right:auto;border:0;background:#edf4ff;border-radius:10px;padding:8px 11px;font:900 10px Cairo;}
+
+/* json readout */
+.json-panel{background:linear-gradient(160deg,var(--navy-950) 0%, #071233 100%);border-radius:16px;padding:14px 15px;margin-top:9px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06), 0 10px 26px rgba(3,10,35,.35);overflow:auto;max-height:260px;position:relative;}
+.json-panel::before{content:"● ● ●";position:absolute;top:9px;left:13px;letter-spacing:4px;color:rgba(255,255,255,.18);font-size:8px;}
+.json-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.json-panel-head b{color:#dfe9ff;font:800 10.5px Cairo;display:flex;align-items:center;gap:6px;}
+.json-panel-head span{font:600 8.5px var(--mono);color:#6f86c4;}
+.json-view{font-family:var(--mono);font-size:10.8px;line-height:1.85;white-space:pre;direction:ltr;text-align:left;margin-top:14px;}
+.json-view .jk{color:#7dd3ff;} .json-view .js{color:#ffd479;} .json-view .jn{color:#8fffb0;} .json-view .jb{color:#ff9ed2;} .json-view .jp{color:#5b6f9e;}
+.cc-panel{box-shadow:0 40px 120px rgba(0,0,0,.42), 0 0 0 1px rgba(255,255,255,.4) inset;}
+.cc-action.primary,.cc-action.primary{background:linear-gradient(115deg,var(--blue-1),var(--cyan-1));border-color:transparent;}
+.cc-action.primary:hover,.cc-action:hover{transform:translateY(-1px);}
+
+/* ───────── settings ───────── */
+.settings-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line-soft);border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--card-shadow);transition:box-shadow .25s var(--ease);}
+.settings-row .st-label{font-weight:800;font-size:13px;color:var(--ink-900);}
+.settings-row .st-desc{font-size:11px;color:var(--ink-400);font-weight:600;margin-top:2px;}
+.st-switch{position:relative;width:44px;height:26px;flex-shrink:0;border-radius:20px;background:#dbe6ff;cursor:pointer;transition:.18s;border:none;padding:0;}
+.st-switch.on{background:var(--green);}
+.st-switch::after{content:"";position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.18s;}
+.st-switch.on::after{transform:translateX(-18px);}
+.settings-field{background:#fff;border:1px solid var(--line-soft);border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--card-shadow);}
+.settings-field label{display:block;font-weight:800;font-size:12.5px;color:var(--ink-900);margin-bottom:6px;}
+.settings-field input,.settings-field textarea{width:100%;font-family:inherit;border:2px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;}
+.settings-group-title{font-weight:900;font-size:13px;color:var(--ink-900);margin:14px 0 6px;}
+
+/* ───────── signature waveform mark ───────── */
+.wave{display:inline-flex;align-items:flex-end;justify-content:center;gap:2.5px;height:16px;position:relative;z-index:1;}
+.wave i{display:block;width:3px;border-radius:2px;background:linear-gradient(180deg,#fff6cf,var(--gold-1));animation:waveBeat 1.15s ease-in-out infinite;box-shadow:0 0 6px rgba(255,207,63,.6);}
+.wave i:nth-child(1){height:38%;animation-delay:0s;} .wave i:nth-child(2){height:100%;animation-delay:.14s;} .wave i:nth-child(3){height:62%;animation-delay:.28s;} .wave i:nth-child(4){height:82%;animation-delay:.42s;}
+.wave.muted i{background:linear-gradient(180deg,#c9d6f2,#9fb3e0);box-shadow:none;}
+@keyframes waveBeat{0%,100%{transform:scaleY(.42);}50%{transform:scaleY(1);}}
+
+/* ───────── responsive ───────── */
+@media(max-width:559px){
+  .container{padding-left:11px;padding-right:11px;}
+  .card{border-radius:16px;padding:9px;}
+  .grid{gap:10px;}
+  .market-toolbar{grid-template-columns:1fr auto;}
+  .profile-strip{border-radius:14px;}
+  .detail{border-radius:22px;padding:10px;} .detail h2{font-size:18px;}
+  .admin-health,.dashboard-grid{grid-template-columns:1fr 1fr;} .health-box{padding:7px 3px;}
+}
+
+#customer-orders-fallback:target{display:block!important;}
+
+</style>
+</head>
+<body><div id="topProgress" class="top-progress"></div>
+<div id="app"></div>
+
+<script>
+// ---------- Supabase connection ----------
+// Only the publishable (anon) key belongs here. NEVER put the secret key in
+// frontend code — anyone viewing the page source would get full DB access.
+const SUPABASE_URL = "https://bjlttyyaqxjxygtgxbjl.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_4CRp9w10zal3efJnopjVaw_OxTjMjK1";
+let sb = null;
+try{
+  if(window.supabase && typeof window.supabase.createClient === "function"){
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+}catch(e){ console.error("Supabase init failed, falling back to local-only mode", e); }
+
+const CATEGORIES = ["الكل","بيع","تبديل"];
+const TYPE_ICONS = {"بيع":"●","تبديل":"⇄"};
+const PAYMENT_STORES = [
+  {id:"gamepass", label:"🎮 بطاقة Game Pass"},
+  {id:"freefire", label:"🔥 بطاقة Free Fire"},
+  {id:"pubg", label:"🔫 بطاقة PUBG"},
+  {id:"playstation", label:"🎮 بطاقة PlayStation Store"},
+  {id:"xbox", label:"🟩 بطاقة Xbox"},
+  {id:"steam", label:"🟦 بطاقة Steam"},
+  {id:"googleplay", label:"▶️ بطاقة Google Play"},
+  {id:"itunes", label:"🍎 بطاقة App Store"},
+  {id:"other", label:"✨ متجر/بطاقة أخرى"}
+];
+const RARITIES = [
+  {id:"سكريت", label:"⬤ سكريت", accent:"#0a0a0a", tint:"#f1f1f1", text:"#0a0a0a"},
+  {id:"اترنل", label:"◆ إترنال", accent:"#e42232", tint:"#ffe9ea", text:"#b3121f"},
+  {id:"ديفاين سماوى", label:"✦ ديفاين سماوى", accent:"#1597ff", tint:"#e8f7ff", text:"#0874c9"}
+];
+const MAP_TYPES = [
+  {id:"ماب نطه", label:"↗ ماب نطه"},
+  {id:"ماب سرقة", label:"⚡ ماب سرقة"}
+];
+const CAT_ICONS = {"سكريت":"⬤","اترنل":"◆","ديفاين سماوى":"✦","ماب نطه":"↗","ماب سرقة":"⚡"};
+
+let state = {
+  favorites: [],
+  favoritesView: false,
+  currentUser: null, viewed: [], profileOpen: false, selectedGallery: 0,
+  adminSearch: "", adminSelected: [], reports: [], notifications: [],
+  sort: "newest",
+  selectedItem: null,
+  adminFilter: "pending",
+  formDraft: {},
+  view: "market",
+  listings: [],
+  loading: true,
+  adminAuthed: false,
+  search: "",
+  categoryFilter: "الكل",
+  showAddModal: false,
+  toast: null,
+  pendingImages: [],
+  formType: "بيع",
+  formPaymentMethod: "store",
+  formPaymentStore: "gamepass",
+  formBankAccount: "",
+  formRarity: "سكريت",
+  formMapType: "ماب نطه",
+  editingId: null,
+  showSuccessModal: false,
+  jsonViewOpen: false,
+  adminTab: "queue",
+  requests: [],
+  requestCounter: 0,
+  showRequestModal: false,
+  requestItemId: null,
+  requestTradeImage: null,
+  requestFreeFireCodes: Array(10).fill(""),
+  showRequestSuccessModal: null,
+  settings: {
+    siteOpen: true,
+    allowNewListings: true,
+    siteTitle: "سوق سونيك السريع",
+    siteTagline: "بيع وبدّل أغراضك بسرعة الصوت ✦",
+    homeKicker: "SONIC MARKET",
+    homeHeadline: "بيع. بدّل. اكتشف. بسرعة سونيك.",
+    homeSub: "سوق إعلانات سريع — كل إعلان يمر بالمراجعة قبل ظهوره للناس.",
+    closedMessage: "السوق مغلق مؤقتاً من قبل الإدارة — عد لاحقاً.",
+    showPrice: true,
+    showViews: true,
+    showCategoryBadge: true,
+  },
+};
+
+const LOCAL_KEY = "sonic_market_listings_v99";
+const SETTINGS_KEY = "sonic_market_settings_v1";
+const REQUESTS_KEY = "sonic_market_requests_v1";
+function storageAvailable(){
+  try{
+    const x="__sonic_test__";
+    localStorage.setItem(x,x); localStorage.removeItem(x);
+    return true;
+  }catch(e){ return false; }
+}
+
+// ---------- Supabase <-> app-object mapping ----------
+// The DB uses snake_case columns; the app's state objects use camelCase.
+function rowToListing(r){
+  return {
+    id: r.id, title: r.title, type: r.type, price: r.price, category: r.category,
+    mapType: r.map_type, contact: r.contact, paymentMethod: r.payment_method,
+    paymentStore: r.payment_store, bankAccount: r.bank_account, tiktok: r.tiktok,
+    fortnite: r.fortnite, image: r.image, images: r.images || [],
+    sellerName: r.seller_name, sellerAvatar: r.seller_avatar,
+    status: r.status, hidden: !!r.hidden, views: r.views||0, createdAt: r.created_at,
+    deletedAt: r.deleted_at ? new Date(r.deleted_at).getTime() : null, previousStatus: r.previous_status||null,
+  };
+}
+function listingToRow(it){
+  return {
+    id: it.id, title: it.title, type: it.type, price: it.price, category: it.category,
+    map_type: it.mapType, contact: it.contact, payment_method: it.paymentMethod,
+    payment_store: it.paymentStore, bank_account: it.bankAccount, tiktok: it.tiktok,
+    fortnite: it.fortnite, image: it.image, images: it.images||[],
+    seller_name: it.sellerName, seller_avatar: it.sellerAvatar,
+    status: it.status, hidden: !!it.hidden, views: it.views||0, created_at: it.createdAt,
+  };
+}
+function rowToRequest(r){
+  return { id:r.id, number:r.number, itemId:r.item_id, itemTitle:r.item_title, itemType:r.item_type, itemPrice:r.item_price, status:r.status, buyer:r.buyer||{}, createdAt:r.created_at };
+}
+function requestToRow(r){
+  return { id:r.id, number:r.number, item_id:r.itemId, item_title:r.itemTitle, item_type:r.itemType, item_price:r.itemPrice, status:r.status, buyer:r.buyer||{}, created_at:r.createdAt };
+}
+function rowToReport(r){ return { id:r.id, itemId:r.item_id, reason:r.reason, createdAt:r.created_at }; }
+function reportToRow(r){ return { id:r.id, item_id:r.itemId, reason:r.reason, created_at:r.createdAt }; }
+
+// Supabase caps a single select() response at 1000 rows by default. Once the
+// table passes that size, a plain select("*") silently truncates — no error,
+// no empty-result warning, just the oldest listings quietly missing from the
+// page. This walks the table in .range() pages so nothing gets dropped.
+async function fetchAllListingRows(){
+  const PAGE = 1000;
+  let from = 0, all = [];
+  while(true){
+    const { data, error } = await sb.from("listings").select("*")
+      .order("created_at",{ascending:false}).range(from, from+PAGE-1);
+    if(error) throw error;
+    const rows = data||[];
+    all = all.concat(rows);
+    if(rows.length < PAGE) break;
+    from += PAGE;
+  }
+  return all;
+}
+async function loadListings(){
+  // Read the local cache FIRST, before touching the cloud at all.
+  let localCache = [];
+  try{
+    const raw = storageAvailable() ? localStorage.getItem(LOCAL_KEY) : null;
+    localCache = raw ? JSON.parse(raw) : [];
+    if(!Array.isArray(localCache)) localCache = [];
+  }catch(_){ localCache = []; }
+
+  state.cloudEmptyWarning = false;
+
+  if(sb){
+    try{
+      const cloudRows = (await fetchAllListingRows()).map(rowToListing);
+      // ⚠️ SAFETY NET — this is the fix for the "everything got deleted" bug.
+      // If Supabase suddenly returns ZERO rows while we already have a
+      // non-empty local cache, that is far more likely to be a misconfiguration
+      // (RLS policy accidentally denying reads, a rotated/expired key, a wrong
+      // project URL, a dropped table) than a real mass-deletion. Silently
+      // trusting that empty response and overwriting the local backup is
+      // exactly the mechanism that destroyed the listings before. So: never do
+      // that. Keep showing the last known-good data and raise a loud,
+      // impossible-to-miss warning instead.
+      if(cloudRows.length === 0 && localCache.length > 0){
+        state.listings = localCache;
+        state.cloudEmptyWarning = true;
+        console.error("⚠️ Supabase returned 0 listings while the local cache has "+localCache.length+". Refusing to overwrite the local cache. Check Supabase RLS policies / anon key / table before doing anything else — do NOT re-run any SQL or re-publish listings yet.");
+      } else {
+        state.listings = cloudRows;
+        if(storageAvailable()) localStorage.setItem(LOCAL_KEY, JSON.stringify(state.listings));
+      }
+    }catch(e){
+      console.warn("Supabase listings load failed, using local cache", e);
+      state.listings = localCache;
+    }
+  } else {
+    state.listings = localCache;
+  }
+
+  sanitizeState();
+  state.loading = false;
+  openSharedItemFromHash();
+  render();
+}
+// saveListings persists the *entire* local snapshot — used as an offline
+// fallback/cache only. Individual mutations (add/approve/reject/delete/edit)
+// talk to Supabase directly via their own functions below for correctness.
+async function saveListings(){
+  try{
+    if(storageAvailable()) localStorage.setItem(LOCAL_KEY, JSON.stringify(state.listings));
+  }catch(e){
+    console.error("local cache storage error", e);
+  }
+  state.lastSync=Date.now();
+}
+async function loadSiteSettings(){
+  if(sb){
+    try{
+      const { data, error } = await sb.from("site_settings").select("data").eq("id",1).maybeSingle();
+      if(error) throw error;
+      if(data && data.data) state.settings = Object.assign({}, state.settings, data.data);
+      if(storageAvailable()) localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
+      render();
+      return;
+    }catch(e){
+      console.warn("Supabase settings load failed, using local cache", e);
+    }
+  }
+  try{
+    const raw = storageAvailable() ? localStorage.getItem(SETTINGS_KEY) : null;
+    if(raw) state.settings = Object.assign({}, state.settings, JSON.parse(raw));
+  }catch(_){}
+  render();
+}
+async function saveSiteSettings(){
+  try{ if(storageAvailable()) localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); }catch(_){}
+  if(sb){
+    try{
+      const { error } = await sb.from("site_settings").upsert({ id:1, data: state.settings });
+      if(error) throw error;
+    }catch(e){
+      console.error("Supabase settings save failed (check you're logged in as admin / RLS policy)", e);
+      showToast("✕ تعذر حفظ الإعدادات على السحابة");
+    }
+  }
+}
+function toggleSetting(key){
+  state.settings[key] = !state.settings[key];
+  saveSiteSettings(); recordActivity("⬡","تحكم: "+key+" → "+(state.settings[key]?"مفعّل":"معطّل")); render();
+}
+function updateSettingText(key,val){
+  state.settings[key] = val; saveSiteSettings();
+}
+async function loadRequests(){
+  let loadedFromCloud = false;
+  if(sb && state.adminAuthed){
+    try{
+      const { data, error } = await sb.from("requests").select("*").order("created_at",{ascending:false});
+      if(error) throw error;
+      state.requests = (data||[]).map(rowToRequest);
+      loadedFromCloud = true;
+      if(storageAvailable()) localStorage.setItem(REQUESTS_KEY, JSON.stringify(state.requests));
+    }catch(e){
+      console.warn("Supabase requests load failed, using local cache", e);
+    }
+  }
+  if(!loadedFromCloud){
+    try{
+      const raw = storageAvailable() ? localStorage.getItem(REQUESTS_KEY) : null;
+      state.requests = raw ? JSON.parse(raw) : [];
+    }catch(_){ state.requests=[]; }
+  }
+  state.requestCounter = state.requests.reduce((m,r)=>Math.max(m,r.number||0),0);
+  render();
+}
+async function saveRequests(){
+  try{ if(storageAvailable()) localStorage.setItem(REQUESTS_KEY, JSON.stringify(state.requests)); }catch(_){}
+}
+function paymentStoreLabel(storeId){
+  return (PAYMENT_STORES.find(s=>s.id===storeId)||{}).label || "✨ بطاقة شحن";
+}
+function calcCodesNeeded(priceStr){
+  const num = parseFloat((priceStr||"").toString().replace(/[^0-9.]/g,"")) || 0;
+  return Math.max(1, Math.ceil(num/75));
+}
+function freeFire2200Guide(){
+  return `بطاقة فري فاير 2200 جوهرة سعرها 75 ريال في Like Card ودليل ستور وقت إعداد هذه النسخة. اشترِ العدد المطلوب فقط من مصدر موثوق، ثم أدخل الأكواد في الخانات المخصصة للطلب. لا تشارك الأكواد خارج طلبك مع أي شخص غير المسؤول المعتمد.`;
+}
+function showFreeFireGuide(){
+  state.freeFireGuideOpen = true;
+  render();
+}
+function closeFreeFireGuide(){
+  state.freeFireGuideOpen = false;
+  render();
+}
+function openRequestModal(id){
+  const it = state.listings.find(x=>x.id===id);
+  if(!it) return;
+  state.requestItemId = id;
+  state.requestTradeImage = null;
+  state.requestFreeFireCodes = Array(10).fill("");
+  state.showRequestModal = true;
+  render();
+}
+function closeRequestModal(){ state.showRequestModal=false; state.requestItemId=null; state.requestTradeImage=null; state.requestFreeFireCodes=Array(10).fill(""); render(); }
+function closeRequestSuccessModal(){ state.showRequestSuccessModal=null; state.requestFreeFireCodes=Array(10).fill(""); render(); }
+function onRequestTradeImagePick(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  fileToCompressedDataUrl(file, (dataUrl)=>{ state.requestTradeImage=dataUrl; render(); });
+}
+function updateFreeFireCode(i,value){
+  if(!Array.isArray(state.requestFreeFireCodes)) state.requestFreeFireCodes=Array(10).fill("");
+  state.requestFreeFireCodes[i]=(value||"").trim().slice(0,80);
+}
+function freeFireCodesRequired(price){
+  return calcCodesNeeded(price);
+}
+function freeFireCodeFields(required){
+  // عدد الخانات يظهر حسب السعر: 75 ريال = 1، 150 = 2، 750 = 10.
+  const n=Math.max(1,Math.ceil(Number(required)||1));
+  if(n>10){
+    return `<div class="notice" style="background:#fff0f0;color:#9b1c1c">هذا السعر يحتاج ${n} أكواد، بينما الحد الأقصى للطلب الواحد هو 10 أكواد.</div>`;
+  }
+  return Array.from({length:n},(_,i)=>{
+    const value=esc((state.requestFreeFireCodes&&state.requestFreeFireCodes[i])||"");
+    return `<div class="ff-code-row required"><span>${i+1}</span><input type="text" inputmode="text" autocomplete="off" required value="${value}" oninput="updateFreeFireCode(${i},this.value)" placeholder="كود فري فاير ${i+1} *"></div>`;
+  }).join("");
+}
+
+function submitRequest(){
+  const it = state.listings.find(x=>x.id===state.requestItemId);
+  if(!it){ closeRequestModal(); return; }
+  let buyer;
+  if(it.type==="تبديل"){
+    const tiktok = (document.getElementById("rq_tiktok")||{}).value?.trim();
+    const fortnite = (document.getElementById("rq_fortnite")||{}).value?.trim();
+    if(!state.requestTradeImage){ showToast("△ من فضلك ارفع صورة الشيء الذي تريد التبديل به"); return; }
+    if(!tiktok){ showToast("△ من فضلك أدخل اسم حساب تيك توك"); return; }
+    if(!fortnite){ showToast("△ من فضلك أدخل اسم حساب فورتنايت"); return; }
+    buyer = { tiktok, fortnite, tradeImage: state.requestTradeImage };
+  } else {
+    const firstName = (document.getElementById("rq_first")||{}).value?.trim();
+    const lastName = (document.getElementById("rq_last")||{}).value?.trim();
+    const tiktok = (document.getElementById("rq_tiktok2")||{}).value?.trim();
+    if(!firstName){ showToast("△ من فضلك اكتب اسمك"); return; }
+    if(!lastName){ showToast("△ من فضلك اكتب لقبك"); return; }
+    if(!tiktok){ showToast("△ من فضلك أدخل اسم حساب تيك توك"); return; }
+    const codesNeeded = freeFireCodesRequired(it.price);
+    if(codesNeeded>10){ showToast("✕ هذا الطلب يحتاج أكثر من 10 أكواد. الحد الحالي هو 10 أكواد لكل طلب."); return; }
+    const cardReady = document.getElementById("rq_card_ready")?.checked;
+    if(!cardReady){ showToast("△ أكد أولاً أنك اشتريت/وفرت بطاقات فري فاير المطلوبة"); return; }
+    const allCodes = Array.isArray(state.requestFreeFireCodes) ? state.requestFreeFireCodes : [];
+    const codes = Array.from({length:codesNeeded},(_,i)=>(allCodes[i]||"").trim());
+    // منع الإرسال بشكل صارم: يجب إدخال كل خانة مطلوبة، وليس بعض الأكواد فقط.
+    if(codes.length !== codesNeeded || codes.some(code=>code.length===0)){
+      showToast("✕ لا يمكن إكمال الطلب: يجب كتابة جميع أكواد فري فاير المطلوبة ("+codesNeeded+"/"+codesNeeded+")");
+      return;
+    }
+    buyer = {
+      firstName, lastName, tiktok,
+      payMethod: "بطاقات فري فاير 2200 جوهرة",
+      paymentUnitPrice:75,
+      cardsNeeded: codesNeeded,
+      totalCardValue: codesNeeded*75,
+      cardReady:true,
+      freeFireCodes: codes,
+      deliveryNote:"تم استلام أكواد فري فاير ضمن الطلب ويجب التعامل معها بسرية. يتم استكمال العملية عبر المسؤول."
+    };
+  }
+  state.requestCounter = (state.requestCounter||0) + 1;
+  const req = {
+    id: "req_"+Date.now(), number: state.requestCounter,
+    itemId: it.id, itemTitle: it.title, itemType: it.type, itemPrice: it.price||null,
+    createdAt: Date.now(), status: "new", buyer
+  };
+  state.requests.unshift(req);
+  saveRequests();
+  syncToCloud(()=>sb.from("requests").insert(requestToRow(req)), "✕ تعذر إرسال الطلب إلى السحابة (محفوظ محلياً فقط)");
+  recordActivity("▤","طلب جديد #"+req.number+" على: "+it.title);
+  state.notifications.push("طلب جديد #"+req.number);
+  state.showRequestModal = false; state.requestItemId = null;
+  state.showRequestSuccessModal = req.number;
+  render();
+}
+function setRequestStatus(id,status){
+  const r = state.requests.find(x=>x.id===id);
+  if(!r) return;
+  r.status = status; saveRequests(); render();
+  showToast(status==="done"?"✓ تم إنهاء الطلب":status==="contacted"?"◇ تم التواصل مع الزبون":"↺ تمت إعادة الطلب لقيد الانتظار");
+  syncToCloud(()=>sb.from("requests").update({status}).eq("id",id));
+}
+function deleteRequest(id){
+  state.requests = state.requests.filter(x=>x.id!==id); saveRequests(); render(); showToast("⌫ تم حذف الطلب");
+  syncToCloud(()=>sb.from("requests").delete().eq("id",id));
+}
+function showToast(msg){
+  state.toast = msg; render();
+  setTimeout(()=>{ state.toast = null; render(); }, 2200);
+}
+function fileToCompressedDataUrl(file, cb){
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = function(){
+      const maxW = 360;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      cb(canvas.toDataURL("image/jpeg", 0.65));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+// Generic helper: run a Supabase call, log/report failure, but never throw —
+// the local state change (already applied by the caller) stays as the
+// offline source of truth if the network/DB call fails.
+async function syncToCloud(promiseFactory, failMsg){
+  if(!sb) return false;
+  try{
+    const { error } = await promiseFactory();
+    if(error) throw error;
+    return true;
+  }catch(e){
+    console.error("Supabase sync failed:", e);
+    showToast(failMsg || "✕ تعذر المزامنة مع السحابة — التغيير محفوظ محلياً فقط");
+    return false;
+  }
+}
+function addListing(data){
+  ensureUser();
+  const imgs = Array.isArray(data.images) ? data.images.filter(Boolean) : (data.image?[data.image]:[]);
+  const item = {
+    id: "item_" + Date.now(), title: data.title, type: data.type, price: data.price,
+    category: data.category, mapType: data.mapType||"ماب نطه", contact: data.contact, paymentMethod: data.paymentMethod||null, paymentStore: data.paymentStore||null, bankAccount: data.bankAccount||null, tiktok: data.tiktok, fortnite: data.fortnite,
+    image: imgs[0]||null, images: imgs,
+    sellerName: state.currentUser.name, sellerAvatar: state.currentUser.avatar,
+    status: "pending", createdAt: Date.now(), views: 0, hidden: false
+  };
+  state.listings.unshift(item);
+  saveListings();
+  (async()=>{
+    await ensureCloudAuth();
+    syncToCloud(()=>sb.from("listings").insert(listingToRow(item)), "✕ تعذر نشر الإعلان على السحابة (سيُعاد المحاولة لاحقاً)");
+  })();
+  state.showSuccessModal = true;
+}
+function approveItem(id){
+  const it = state.listings.find(x=>x.id===id);
+  if(it){
+    it.status = "approved"; saveListings(); render(); showToast("✓ تم نشر الإعلان");
+    syncToCloud(()=>sb.from("listings").update({status:"approved"}).eq("id",id));
+  }
+}
+// rejectItem/deleteItem no longer hard-delete. They move the listing into a
+// recoverable "trash" state (status = 'deleted') both locally and — via the
+// soft_delete_listing() RPC — in the database. A real DELETE is now only
+// possible through permanentlyDeleteListing(), which requires a typed
+// confirmation, and even then the row's last snapshot survives in the
+// listings_audit table. This is the fix for listings vanishing permanently.
+function softDeleteLocal(id){
+  const it = state.listings.find(x=>x.id===id);
+  if(!it) return null;
+  it.previousStatus = it.status;
+  it.status = "deleted";
+  it.deletedAt = Date.now();
+  return it;
+}
+function rejectItem(id){
+  if(!softDeleteLocal(id)) return;
+  saveListings(); render(); showToast("⊘ تم نقل الطلب إلى المحذوفات (قابل للاسترجاع)");
+  (async()=>{ await ensureCloudAuth(); syncToCloud(()=>sb.rpc("soft_delete_listing",{p_id:id}), "✕ تعذر مزامنة الحذف مع السحابة"); })();
+}
+function deleteItem(id){
+  if(!softDeleteLocal(id)) return;
+  saveListings(); render(); showToast("⌫ تم نقل الإعلان إلى المحذوفات (قابل للاسترجاع من تبويب المحذوفات)");
+  (async()=>{ await ensureCloudAuth(); syncToCloud(()=>sb.rpc("soft_delete_listing",{p_id:id}), "✕ تعذر مزامنة الحذف مع السحابة"); })();
+}
+function restoreListing(id){
+  const it = state.listings.find(x=>x.id===id);
+  if(!it) return;
+  it.status = it.previousStatus || "pending";
+  it.deletedAt = null;
+  saveListings(); render(); showToast("↺ تم استرجاع الإعلان");
+  (async()=>{ await ensureCloudAuth(); syncToCloud(()=>sb.rpc("restore_listing",{p_id:id}), "✕ تعذر الاسترجاع من السحابة"); })();
+}
+function permanentlyDeleteListing(id){
+  const it = state.listings.find(x=>x.id===id);
+  if(!it) return;
+  if(!confirm("حذف نهائي — لا يمكن التراجع عنه من الموقع. متأكد؟")) return;
+  const typed = prompt('للتأكيد، اكتب كلمة "حذف" بالضبط:');
+  if(typed !== "حذف"){ showToast("✕ تم الإلغاء"); return; }
+  state.listings = state.listings.filter(x=>x.id!==id);
+  saveListings(); render(); showToast("⌫ تم الحذف النهائي");
+  (async()=>{ await ensureCloudAuth(); syncToCloud(()=>sb.rpc("admin_hard_delete_listing",{p_id:id}), "✕ تعذر الحذف النهائي من السحابة"); })();
+}
+function toggleItemHidden(id){
+  const it = state.listings.find(x=>x.id===id);
+  if(!it) return;
+  it.hidden = !it.hidden;
+  saveListings(); recordActivity(it.hidden?"⊘":"◉", (it.hidden?"إخفاء إعلان: ":"إظهار إعلان: ")+it.title);
+  render(); showToast(it.hidden?"⊘ تم إخفاء الإعلان عن الزوار":"◉ الإعلان ظاهر الآن للزوار");
+  syncToCloud(()=>sb.from("listings").update({hidden:it.hidden}).eq("id",id));
+}
+function contactLink(contact){
+  const digits = (contact||"").replace(/[^0-9]/g,"");
+  return digits.length >= 8 ? "https://wa.me/" + digits : null;
+}
+function esc(s){ if(s===null||s===undefined) return ""; return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+// Safely embeds a value inside a single-quoted JS string literal that itself
+// sits inside an HTML attribute (e.g. onclick="fn('${escJs(x)}')").
+// esc() alone is NOT enough here: it never escapes the single-quote
+// character, which is exactly what terminates the JS string in that pattern.
+// JS-escape first (backslash, then quote), then HTML-attribute-escape the
+// result with esc() so the browser hands JS back exactly what we produced.
+function escJs(s){ if(s===null||s===undefined) return ""; return esc(String(s).replace(/\\/g,"\\\\").replace(/'/g,"\\'")); }
+
+function skeletonCards(n){
+  let s = `<div class="skel-grid">`;
+  for(let i=0;i<n;i++){
+    s += `<div class="skel-card">
+      <div class="skel-box" style="aspect-ratio:1/1;margin-bottom:8px;"></div>
+      <div class="skel-box" style="height:12px;width:80%;margin-bottom:6px;"></div>
+      <div class="skel-box" style="height:10px;width:50%;"></div>
+    </div>`;
+  }
+  return s + `</div>`;
+}
+
+
+function toggleAdminSelected(id){const i=state.adminSelected.indexOf(id);if(i>=0)state.adminSelected.splice(i,1);else state.adminSelected.push(id);render()}
+function approveSelected(){
+  if(!state.adminSelected.length){showToast("اختر طلباً أولاً");return}
+  const ids = state.adminSelected.slice();
+  state.listings.forEach(x=>{if(ids.includes(x.id))x.status="approved"});
+  state.adminSelected=[];saveListings();render();showToast("✓ تم قبول المحدد");
+  syncToCloud(()=>sb.from("listings").update({status:"approved"}).in("id",ids));
+}
+function rejectSelected(){
+  if(!state.adminSelected.length){showToast("اختر طلباً أولاً");return}
+  const ids = state.adminSelected.slice();
+  ids.forEach(softDeleteLocal);
+  state.adminSelected=[];saveListings();render();showToast("⊘ تم نقل المحدد إلى المحذوفات");
+  (async()=>{
+    await ensureCloudAuth();
+    for(const id of ids){ await syncToCloud(()=>sb.rpc("soft_delete_listing",{p_id:id})); }
+  })();
+}
+
+function render(){
+  try{
+    renderInner();
+  }catch(err){
+    console.error("Render error — showing recovery screen:", err);
+    renderCrashScreen(err);
+  }
+}
+function renderCrashScreen(err){
+  const app = document.getElementById("app");
+  if(!app) return;
+  let msg = "";
+  try{ msg = (err && err.message) ? String(err.message) : String(err); }catch(_){ msg = "خطأ غير معروف"; }
+  app.innerHTML = `
+  <div style="padding:50px 22px;text-align:center;font-family:Cairo,sans-serif;direction:rtl;max-width:420px;margin:0 auto">
+    <div style="font-size:44px;margin-bottom:10px">⚠</div>
+    <h2 style="color:#d8344b;margin:0 0 8px">حدث خطأ أثناء عرض الصفحة</h2>
+    <p style="color:#657195;font-size:13px;line-height:1.6">غالباً بسبب بيانات محفوظة محلياً بصيغة غير متوقعة. يمكنك محاولة إصلاح البيانات تلقائياً دون فقدان الإعلانات السليمة، أو إعادة تحميل الصفحة.</p>
+    <div style="background:#f3f5fb;border-radius:10px;padding:8px 10px;font-family:monospace;font-size:11px;color:#8a93ad;margin:14px 0;word-break:break-all;direction:ltr;text-align:left">${(msg||"").replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]))}</div>
+    <button onclick="repairLocalData()" style="width:100%;padding:12px;border:none;border-radius:12px;background:#1264ff;color:#fff;font-weight:800;font-size:14px;cursor:pointer;margin-bottom:8px">▤ إصلاح البيانات تلقائياً والمتابعة</button>
+    <button onclick="location.reload()" style="width:100%;padding:10px;border:none;border-radius:12px;background:#eef1f7;color:#33405e;font-weight:700;font-size:13px;cursor:pointer">↺ إعادة تحميل الصفحة فقط</button>
+  </div>`;
+}
+function sanitizeState(){
+  // Coerce/repair fields so a single bad record can never crash render() again.
+  if(!Array.isArray(state.listings)) state.listings = [];
+  state.listings = state.listings.filter(x=>x && typeof x==="object").map(it=>({
+    ...it,
+    id: it.id || ("item_"+Math.random().toString(36).slice(2)),
+    title: it.title!=null ? String(it.title) : "(بدون عنوان)",
+    type: it.type==="تبديل" ? "تبديل" : "بيع",
+    price: it.price!=null ? String(it.price) : "",
+    category: it.category!=null ? String(it.category) : "سكريت",
+    mapType: it.mapType!=null ? String(it.mapType) : "ماب نطه",
+    contact: it.contact!=null ? String(it.contact) : "",
+    tiktok: it.tiktok!=null ? String(it.tiktok) : "",
+    fortnite: it.fortnite!=null ? String(it.fortnite) : "",
+    createdAt: typeof it.createdAt==="number" ? it.createdAt : Date.now(),
+    views: typeof it.views==="number" ? it.views : 0,
+    images: Array.isArray(it.images) ? it.images.filter(x=>typeof x==="string") : [],
+    status: ["pending","approved","deleted"].includes(it.status) ? it.status : "pending",
+  }));
+  if(!Array.isArray(state.requests)) state.requests = [];
+  if(!Array.isArray(state.reports)) state.reports = [];
+  if(!Array.isArray(state.favorites)) state.favorites = [];
+  if(!Array.isArray(state.viewed)) state.viewed = [];
+  if(!state.settings || typeof state.settings !== "object") state.settings = {};
+}
+function repairLocalData(){
+  try{
+    sanitizeState();
+    saveListings();
+    persistUserPrefs();
+    showToastSafe("✓ تم إصلاح البيانات");
+  }catch(e){
+    console.error("repairLocalData failed", e);
+  }
+  render();
+}
+function showToastSafe(msg){
+  try{ showToast(msg); }catch(_){ /* toast itself failed — ignore, rendering already recovered */ }
+}
+function renderInner(){
+  const app = document.getElementById("app");
+  const approved = state.listings.filter(x=>x.status==="approved");
+  const pending = state.listings.filter(x=>x.status==="pending");
+  const deletedItems = state.listings.filter(x=>x.status==="deleted");
+  const visibleApproved = approved.filter(x=>!x.hidden);
+  let filtered = visibleApproved.filter(it=>{
+    const matchCat = state.categoryFilter==="الكل" || it.type===state.categoryFilter;
+    const q = state.search.toLowerCase();
+    const haystack = [it.title,it.category,it.type,it.tiktok,it.fortnite].filter(Boolean).join(" ").toLowerCase();
+    const matchSearch = !q || haystack.includes(q);
+    return matchCat && matchSearch;
+  });
+  if(state.favoritesView) filtered = filtered.filter(it=>state.favorites.includes(it.id));
+  filtered.sort((a,b)=>{
+    if(state.sort==="title") return String(a.title||"").localeCompare(String(b.title||""),'ar');
+    if(state.sort==="oldest") return (a.createdAt||0)-(b.createdAt||0);
+    return (b.createdAt||0)-(a.createdAt||0);
+  });
+
+  let html = `
+  <div class="hero">
+    <div class="hero-top">
+      <div class="brand">
+        <div class="logo-ring"><svg class="logo-mark" viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M13.2 2 4.5 13.6h5.1L10.3 22l9.2-12.6h-5.4L13.2 2Z" fill="url(#lg)"/><defs><linearGradient id="lg" x1="4.5" y1="2" x2="19.5" y2="22"><stop offset="0" stop-color="#22e6ff"/><stop offset="1" stop-color="#ffcf3f"/></linearGradient></defs></svg></div>
+        <div>
+          <div class="brand-name">${esc(state.settings.siteTitle)}</div>
+          <div class="brand-tag">${esc(state.settings.siteTagline)}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;">
+        <span class="status-live">مباشر</span>
+        <div class="stat-pill"><b>${visibleApproved.length}</b>إعلان</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn ${state.view==='market'?'active':''}" onclick="setView('market')">◆ السوق</button>
+      <button class="tab-btn ${state.view==='admin'?'active':''}" onclick="setView('admin')" style="position:relative">⬢ لوحة التحكم ${pending.length>0 ? '<span class="mini-chip">'+pending.length+'</span>' : ''}${state.notifications.length>0?'<span class="notification-dot"></span>':''}</button>
+    </div>
+  </div>
+  <div class="container">
+  `;
+
+  if(state.cloudEmptyWarning){
+    html += `
+    <div style="background:#fff0f1;border:2px solid #e42232;color:#7a0f1c;border-radius:14px;padding:14px 16px;margin-bottom:14px;font-size:12.5px;line-height:1.8;font-weight:700;">
+      ⚠ السحابة (Supabase) رجّعت صفر إعلانات رغم وجود نسخة محلية محفوظة — تم تجاهل هذا الرد حماية للبيانات ويتم عرض آخر نسخة معروفة فقط. هذا غالباً بسبب مشكلة صلاحيات (RLS) أو مفتاح API وليس حذفاً حقيقياً.
+      <br>▸ لا تحذف أو تعدّل أي شيء الآن. تحقق من: مفتاح anon، اسم المشروع، سياسات RLS في Supabase Dashboard قبل أي إجراء آخر.
+    </div>`;
+  }
+
+  if(state.loading){
+    html += skeletonCards(6);
+  } else if(state.view === "market" && !state.settings.siteOpen){
+    html += `
+    <div class="home-hero-card">
+      <div class="hero-kicker">⬢ SONIC MARKET</div>
+      <div class="hero-big">${esc(state.settings.closedMessage)}</div>
+    </div>`;
+  } else if(state.view === "market"){
+    html += `
+    <div class="home-hero-card">
+      <div class="hero-kicker">✦ ${esc(state.settings.homeKicker)}</div>
+      <div class="hero-big">${esc(state.settings.homeHeadline)}</div>
+      <div class="hero-sub">${esc(state.settings.homeSub)}</div>
+      <div class="hero-actions">
+        <button class="a1" onclick="state.search='';state.categoryFilter='الكل';render()">◎ تصفح كل الإعلانات</button>
+      </div>
+    </div>
+    <div class="profile-strip">
+      <div class="avatar">${esc(state.currentUser?.avatar||"✦")}</div>
+      <div onclick="openProfile()" style="cursor:pointer"><small>حسابك في Sonic Market</small><b>${esc(state.currentUser?.name||"زائر سونيك")}</b></div>
+      <button class="toolbar-btn" onclick="editProfile()" style="background:rgba(255,255,255,.12);color:#fff;border:0">✎ تعديل</button>
+    </div>
+    <div class="market-toolbar">
+      <div class="quick-bar" style="display:flex;overflow:auto;gap:7px">
+        <button class="quick-btn ${!state.favoritesView?'active':''}" onclick="setQuick('all')">✧ الكل</button>
+        <button class="quick-btn ${state.favoritesView?'active':''}" onclick="setQuick('favorites')">♥ المفضلة</button>
+      </div>
+      <select onchange="setSort(this.value)" aria-label="ترتيب">
+        <option value="newest" ${state.sort==='newest'?'selected':''}>✦ الأحدث</option>
+        <option value="oldest" ${state.sort==='oldest'?'selected':''}>◐ الأقدم</option>
+        <option value="title" ${state.sort==='title'?'selected':''}>▤ الاسم</option>
+      </select>
+    </div>
+
+    ${getRecentItems().length?`<div class="recent-title"><b>◐ شاهدت مؤخراً</b><button onclick="clearRecent()">مسح</button></div>
+    <div class="recent-row">${getRecentItems().map(it=>`<div class="recent-card" onclick="openDetails('${escJs(it.id)}')">
+      ${it.image?`<img src="${esc(it.image)}" alt="">`:`<div class="recent-placeholder">${CAT_ICONS[it.category]||"◆"}</div>`}
+      <b>${esc(it.title)}</b><small>${esc(it.category||"")}</small>
+    </div>`).join("")}</div>`:""}
+    <div class="search-row">
+      <div class="search-box">
+        <input type="text" placeholder="ابحث عن غرض..." value="${esc(state.search)}" oninput="onSearch(this.value)">
+        <span class="sicon" onclick="openSearch()" style="cursor:pointer">◎</span>
+      </div>
+    </div>
+    <div class="cat-scroll">
+      ${CATEGORIES.map(c=>`<div class="cat-chip ${state.categoryFilter===c?'active':''}" onclick="onCategoryChange('${c}')">${c==='الكل'?'✦':TYPE_ICONS[c]||'◆'} ${c}</div>`).join("")}
+    </div>
+    `;
+    if(filtered.length === 0){
+      html += `<div class="empty-premium"><div class="e-icon"><span class="wave muted"><i></i><i></i><i></i><i></i></span></div><div class="emoji">◇</div><b>لا توجد إعلانات مطابقة</b>جرّب كلمة بحث أخرى أو كن أول من ينشر عبر زر (+)</div>`;
+    } else {
+      html += `<div class="grid">`;
+      filtered.forEach(it=>{
+        html += `
+        <div class="card ${it.type==='بيع'?'type-sale':'type-trade'}" onclick="openDetails('${escJs(it.id)}')">
+          <span class="ribbon">${it.type==='بيع'?'◆ للبيع':'⇄ للتبديل'}</span>
+          <button class="fav ${state.favorites.includes(it.id)?'active':''}" onclick="event.stopPropagation();toggleFavorite('${escJs(it.id)}')" aria-label="مفضلة">${state.favorites.includes(it.id)?'♥':'♡'}</button>
+          <div class="thumb">
+            ${it.image ? `<img loading="lazy" decoding="async" src="${esc(it.image)}" alt="${esc(it.title)}">` : (CAT_ICONS[it.category]||"◆")}
+            ${state.settings.showCategoryBadge?`<span class="badge ${it.type==='بيع'?'sale':'trade'}">${it.type==='بيع'?'●':'<i>⇄</i>'} ${it.type}</span>`:""}
+          </div>
+          <h3>${esc(it.title)}</h3>
+          <div class="trust-row"><span class="trust-pill">${esc(it.category||"سكريت")}</span><span class="trust-pill">${esc(it.mapType||"ماب نطه")}</span></div>
+          ${state.settings.showViews?engagementChips(it):""}
+          ${state.settings.showPrice?`<div class="card-foot">
+            ${it.type==='بيع' ? `<div class="price">${it.price?esc(it.price)+' ريال':'السعر عند التواصل'}</div>` : `<div class="price trade">⇄ ${esc(it.price||'للتبديل')}</div>`}
+          </div>`:""}
+          <div class="card-actions" onclick="event.stopPropagation()">
+            <button class="contact-btn wa" onclick="openRequestModal('${escJs(it.id)}')">▷ طلب</button>
+            <button class="contact-btn" onclick="shareItem('${escJs(it.id)}')">↗ مشاركة</button>
+          </div>
+        </div>
+        `;
+      });
+      html += `</div>`;
+    }
+    if(state.settings.allowNewListings){
+      html += `<div class="fab" onclick="openAddModal()">+</div>`;
+    }
+  } else if(state.view === "admin"){
+    if(!state.adminAuthed){
+      html += `
+      <div class="admin-lock">
+        <div class="lock-circle">⬢</div>
+        <div style="font-weight:900;color:var(--blue-dark);font-size:16px;">دخول لوحة التحكم</div>
+        <div style="font-size:12.5px;color:#8393b8;margin-top:4px;">خاص بالإدارة فقط</div>
+        <input type="email" id="adminEmailInput" placeholder="البريد الإلكتروني" autocomplete="username" onkeydown="if(event.key==='Enter'){document.getElementById('adminPassInput').focus()}">
+        <input type="password" id="adminPassInput" placeholder="كلمة السر" autocomplete="current-password" onkeydown="if(event.key==='Enter'){tryAdminLogin()}">
+        <button class="btn-main" id="adminLoginBtn" style="max-width:260px;" onclick="tryAdminLogin()">دخول ✦</button>
+      </div>
+      `;
+    } else {
+      html += `
+      <div class="admin-header">
+        <h2>مرحباً أيها المسؤول ✧</h2>
+        <button class="logout-btn" onclick="adminLogout()">خروج</button>
+      </div>
+      <div class="admin-stats">
+        <div class="stat-card pending"><div class="num">${pending.length}</div><div class="lbl">قيد المراجعة</div></div>
+        <div class="stat-card approved"><div class="num">${approved.length}</div><div class="lbl">منشورة</div></div>
+        <div class="stat-card total"><div class="num">${state.listings.length}</div><div class="lbl">الإجمالي</div></div>
+      </div>
+      <input class="admin-search" placeholder="◎ ابحث في الطلبات..." value="${esc(state.adminSearch)}" oninput="state.adminSearch=this.value;render()">
+      <div class="admin-bulk"><button style="background:#e2fff1;color:#138552" onclick="approveSelected()">✓ قبول المحدد</button><button style="background:#fff0f1;color:#d8344b" onclick="rejectSelected()">✕ رفض المحدد</button></div>
+      <div class="admin-health">
+        <div class="health-box"><b>${state.listings.length}</b><span>كل الإعلانات</span></div>
+        <div class="health-box"><b>${pending.length}</b><span>تحت المراجعة</span></div>
+        <div class="health-box"><b>${state.reports.length}</b><span>بلاغات</span></div>
+      </div>
+      <div style="display:flex;gap:7px;margin:8px 0">
+        <button class="toolbar-btn" onclick="exportBackup()">▣ تصدير</button>
+        <label class="toolbar-btn" style="cursor:pointer">◆ استيراد<input type="file" accept="application/json" hidden onchange="importBackupFile(this)"></label>
+        <button class="toolbar-btn" onclick="clearAllLocalData()">⌫ مسح محلي</button>
+      </div>
+
+      <div class="security-box" style="background:linear-gradient(120deg,#eef6ff,#f7fbff);color:#17345f;border:1px solid #dce8fa">
+        <b>⬡ مركز العمليات</b><span>آخر مزامنة محلية: ${new Date(state.lastSync||Date.now()).toLocaleTimeString("ar-DZ")}</span>
+      </div>
+      <div class="admin-activity">
+        ${(state.activity||[]).slice(0,8).map(a=>`<div class="activity"><i>${a.icon}</i><span>${esc(a.label)}</span><time>${timeAgo(a.time)}</time></div>`).join("")||`<div class="activity"><i>✧</i><span>لا توجد أنشطة بعد</span></div>`}
+      </div>
+      <div class="admin-filter">
+        <button type="button" class="${state.adminFilter==='pending'?'active':''}" data-admin-filter="pending" onclick="setAdminFilter('pending')">⧗ الطلبات (${pending.length})</button>
+        <button type="button" class="${state.adminFilter==='approved'?'active':''}" data-admin-filter="approved" onclick="setAdminFilter('approved')">✓ المنشورة (${approved.length})</button>
+        <a href="#customer-orders-fallback" class="${state.adminFilter==='orders'?'active':''} admin-orders-button" data-admin-filter="orders" onclick="setAdminFilter('orders')" aria-label="طلبات الزبائن" role="button" style="position:relative;z-index:20;pointer-events:auto;touch-action:manipulation;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent">▤ طلبات الزبائن (${state.requests.length})${state.requests.filter(r=>r.status==='new').length>0?'<span class="mini-chip">'+state.requests.filter(r=>r.status==='new').length+'</span>':''}</a>
+        <button type="button" class="${state.adminFilter==='reports'?'active':''}" data-admin-filter="reports" onclick="setAdminFilter('reports')">⌖ البلاغات (${state.reports.length})</button>
+        <button type="button" class="${state.adminFilter==='all'?'active':''}" data-admin-filter="all" onclick="setAdminFilter('all')">◆ الكل (${approved.length+pending.length})</button>
+        <button type="button" class="${state.adminFilter==='trash'?'active':''}" data-admin-filter="trash" onclick="setAdminFilter('trash')">🗑 المحذوفات (${deletedItems.length})</button>
+        <button type="button" class="${state.adminFilter==='settings'?'active':''}" data-admin-filter="settings" onclick="setAdminFilter('settings')">⚙ التحكم بالموقع</button>
+      </div>`;
+      if(state.adminFilter==='settings'){
+        const sw = (key,label,desc)=>`
+          <div class="settings-row">
+            <div><div class="st-label">${label}</div>${desc?`<div class="st-desc">${desc}</div>`:""}</div>
+            <button class="st-switch ${state.settings[key]?'on':''}" onclick="toggleSetting('${key}')" aria-label="${label}"></button>
+          </div>`;
+        html += `
+        <div class="admin-section">
+          <div class="settings-group-title">◆ حالة الموقع</div>
+          ${sw('siteOpen','السوق مفتوح للزوار','عند الإيقاف يظهر للزوار رسالة إغلاق فقط، ولوحة التحكم تبقى متاحة لك')}
+          ${sw('allowNewListings','السماح بنشر إعلانات جديدة','عند الإيقاف يختفي زر إضافة إعلان (+)')}
+
+          <div class="settings-group-title">◆ ما يظهر في كل إعلان</div>
+          ${sw('showPrice','إظهار السعر')}
+          ${sw('showViews','إظهار المشاهدات وحالة "جديد/رائج"')}
+          ${sw('showCategoryBadge','إظهار شارة النوع (بيع/تبديل)')}
+
+          <div class="settings-group-title">◆ نصوص الموقع</div>
+          <div class="settings-field"><label>اسم الموقع (أعلى الصفحة)</label><input value="${esc(state.settings.siteTitle)}" oninput="updateSettingText('siteTitle',this.value)"></div>
+          <div class="settings-field"><label>الشعار الفرعي</label><input value="${esc(state.settings.siteTagline)}" oninput="updateSettingText('siteTagline',this.value)"></div>
+          <div class="settings-field"><label>عنوان البطاقة الرئيسية</label><input value="${esc(state.settings.homeHeadline)}" oninput="updateSettingText('homeHeadline',this.value)"></div>
+          <div class="settings-field"><label>الوصف تحت العنوان الرئيسي</label><input value="${esc(state.settings.homeSub)}" oninput="updateSettingText('homeSub',this.value)"></div>
+          <div class="settings-field"><label>رسالة الإغلاق (عند إيقاف الموقع)</label><input value="${esc(state.settings.closedMessage)}" oninput="updateSettingText('closedMessage',this.value)"></div>
+        </div>`;
+      } else {
+      const aq = state.adminSearch.trim().toLowerCase();
+      const matchAdmin = it => !aq || [it.title,it.tiktok,it.fortnite,it.contact,it.category].filter(Boolean).join(" ").toLowerCase().includes(aq);
+      const pendingShown = pending.filter(matchAdmin);
+      const approvedShown = approved.filter(matchAdmin);
+      const deletedShown = deletedItems.filter(matchAdmin);
+      html += `
+      <div class="admin-section" style="${['approved','reports','trash'].includes(state.adminFilter)?'display:none':''}">
+        <h3>⧗ بانتظار المراجعة (${pendingShown.length})</h3>
+        ${pendingShown.length===0 ? `<div class="empty" style="padding:24px;"><div class="emoji" style="font-size:32px;">✧</div>${aq?'لا توجد نتائج مطابقة':'لا توجد طلبات جديدة حالياً'}</div>` : pendingShown.map(it=>`
+          <div class="admin-row">
+            <input type="checkbox" ${state.adminSelected.includes(it.id)?'checked':''} onclick="toggleAdminSelected('${escJs(it.id)}')" style="margin-top:6px;width:16px;height:16px;flex-shrink:0;cursor:pointer" aria-label="تحديد">
+            <div class="thumb-sm">${it.image?`<img src="${esc(it.image)}">`:(CAT_ICONS[it.category]||"◆")}</div>
+            <div class="info">
+              <h4>${esc(it.title)} <span style="font-weight:600;color:#9aa8c9;">(${it.type})</span></h4>
+              <p style="color:#9aa8c9;font-size:10.5px">▤ ${esc(it.sellerName||"-")} · ${esc(it.category||"-")} · ${timeAgo(it.createdAt)}</p>
+              <p>◇ تيك توك: ${esc(it.tiktok||"-")} · ◆ فورتنايت: ${esc(it.fortnite||"-")}</p>
+              <p>▷ واتساب: ${esc(it.contact||"-")} ${it.price? " | ● "+esc(it.price)+(it.type==='بيع'?' ريال':''):""}</p>
+              ${it.type==="بيع" && it.paymentMethod ? `<p>💳 الاستلام: ${it.paymentMethod==="store" ? esc((PAYMENT_STORES.find(s=>s.id===it.paymentStore)||{}).label||"ستور") : "🏦 تحويل بنكي"}${it.paymentMethod==="transfer"&&it.bankAccount ? " · "+esc(it.bankAccount) : ""}</p>` : ""}
+              <p style="color:#c4cede;font-size:10px">◆ الصور: ${(it.images&&it.images.length)||0} · المعرّف: ${esc(it.id)}</p>
+            </div>
+            <div class="admin-actions">
+              <button class="icon-btn mid" onclick="openEditModal('${escJs(it.id)}')" title="تعديل كل بيانات الإعلان">✎</button>
+              <button class="icon-btn ok" onclick="approveItem('${escJs(it.id)}')">✓</button>
+              <button class="icon-btn no" onclick="rejectItem('${escJs(it.id)}')">✕</button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+      <div class="admin-section" style="${['pending','reports','trash'].includes(state.adminFilter)?'display:none':''}">
+        <h3>✓ المعروضة حالياً (${approvedShown.length})</h3>
+        ${approvedShown.length===0 ? `<div class="empty" style="padding:24px;"><div class="emoji" style="font-size:32px;">◇</div>${aq?'لا توجد نتائج مطابقة':'لا توجد إعلانات منشورة'}</div>` : approvedShown.map(it=>`
+          <div class="admin-row">
+            <div class="thumb-sm">${it.image?`<img src="${esc(it.image)}">`:(CAT_ICONS[it.category]||"◆")}</div>
+            <div class="info">
+              <h4>${esc(it.title)} ${it.hidden?'<span style="font-weight:700;color:#d8344b;font-size:11px;">(مخفي عن الزوار)</span>':''}</h4>
+              <p style="color:#9aa8c9;font-size:10.5px">▤ ${esc(it.sellerName||"-")} · ${timeAgo(it.createdAt)} ${isSellerVerified(it.sellerName)?'· ✓ بائع موثوق':''}</p>
+              <p>${esc(it.category)} ${it.price? " | ● "+esc(it.price):""}</p>
+              <p>◇ تيك توك: ${esc(it.tiktok||"-")} · ◆ فورتنايت: ${esc(it.fortnite||"-")} · ▷ واتساب: ${esc(it.contact||"-")}</p>
+               ${it.type==="بيع" && it.paymentMethod ? `<p>💳 الاستلام: ${it.paymentMethod==="store" ? esc((PAYMENT_STORES.find(s=>s.id===it.paymentStore)||{}).label||"ستور") : "🏦 تحويل بنكي"}${it.paymentMethod==="transfer"&&it.bankAccount ? " · "+esc(it.bankAccount) : ""}</p>` : ""}
+              <p style="color:#c4cede;font-size:10px">◉ مشاهدات: ${it.views||0} · المعرّف: ${esc(it.id)}</p>
+            </div>
+            <div class="admin-actions">
+              <button class="icon-btn mid" onclick="openEditModal('${escJs(it.id)}')" title="تعديل كل بيانات الإعلان">✎</button>
+              <button class="icon-btn mid" onclick="toggleItemHidden('${escJs(it.id)}')" title="${it.hidden?'إظهار':'إخفاء'}">${it.hidden?'◉':'⊘'}</button>
+              <button class="icon-btn no" onclick="deleteItem('${escJs(it.id)}')">⌫</button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+      <div class="admin-section" style="${state.adminFilter==='reports'?'':'display:none'}">
+        <h3>⌖ البلاغات (${state.reports.length})</h3>
+        ${state.reports.length===0 ? `<div class="empty" style="padding:24px;"><div class="emoji" style="font-size:32px;">✧</div>لا توجد بلاغات</div>` : state.reports.slice().sort((a,b)=>b.createdAt-a.createdAt).filter(r=>{if(!aq)return true;const it2=state.listings.find(x=>x.id===r.itemId);return (r.reason+" "+(it2?it2.title:"")).toLowerCase().includes(aq)}).map(r=>{
+          const it=state.listings.find(x=>x.id===r.itemId);
+          return `<div class="admin-row">
+            <div class="thumb-sm">${it&&it.image?`<img src="${esc(it.image)}">`:(it?(CAT_ICONS[it.category]||"◆"):"○")}</div>
+            <div class="info">
+              <h4>${it?esc(it.title):"إعلان محذوف"} <span style="font-weight:600;color:#9aa8c9;">${timeAgo(r.createdAt)}</span></h4>
+              <p>${esc(r.reason)}</p>
+            </div>
+            <div class="admin-actions">
+              ${it?`<button class="icon-btn no" onclick="deleteItem('${escJs(it.id)}');dismissReport('${escJs(r.id)}')">⌫</button>`:""}
+              <button class="icon-btn ok" onclick="dismissReport('${escJs(r.id)}')">✓</button>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+      <div class="admin-section" style="${state.adminFilter==='trash'?'':'display:none'}">
+        <h3>🗑 المحذوفات (${deletedShown.length})</h3>
+        <p style="color:#9aa8c9;font-size:11px;margin:-4px 0 10px">هذه الإعلانات لم تُحذف نهائياً — يمكن استرجاعها في أي وقت. الحذف النهائي يتطلب كتابة تأكيد ولا يمكن التراجع عنه.</p>
+        ${deletedShown.length===0 ? `<div class="empty" style="padding:24px;"><div class="emoji" style="font-size:32px;">🗑</div>لا توجد عناصر محذوفة</div>` : deletedShown.slice().sort((a,b)=>(b.deletedAt||0)-(a.deletedAt||0)).map(it=>`
+          <div class="admin-row">
+            <div class="thumb-sm">${it.image?`<img src="${esc(it.image)}">`:(CAT_ICONS[it.category]||"◆")}</div>
+            <div class="info">
+              <h4>${esc(it.title)}</h4>
+              <p style="color:#9aa8c9;font-size:10.5px">▤ ${esc(it.sellerName||"-")} · حُذف ${timeAgo(it.deletedAt||it.createdAt)}</p>
+              <p style="color:#c4cede;font-size:10px">المعرّف: ${esc(it.id)}</p>
+            </div>
+            <div class="admin-actions">
+              <button class="icon-btn ok" onclick="restoreListing('${escJs(it.id)}')" title="استرجاع">↺</button>
+              <button class="icon-btn no" onclick="permanentlyDeleteListing('${escJs(it.id)}')" title="حذف نهائي — لا يمكن التراجع">⌫</button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+      `;
+      }
+    }
+  }
+
+  html += `</div>`;
+
+  // Native fallback: always render the customer-orders panel so the mobile browser can open it via the hash.
+  const fallbackReqs = state.requests.slice().sort((a,b)=>b.createdAt-a.createdAt);
+  html += `
+    <div id="customer-orders-fallback" class="admin-section customer-orders-fallback" style="${state.adminFilter==='orders'?'':'display:none'}">
+      <h3>▤ طلبات الزبائن (${fallbackReqs.length})</h3>
+      ${fallbackReqs.length===0 ? `<div class="empty" style="padding:24px;"><div class="emoji" style="font-size:32px;">✧</div>لا توجد طلبات بعد</div>` : fallbackReqs.map(r=>{
+        const b=r.buyer||{};
+        const isTrade = r.itemType==='تبديل';
+        const statusLabel=r.status==='done'?'✓ منتهي':r.status==='contacted'?'◇ تم التواصل':'● جديد';
+        const statusColor=r.status==='done'?'#138552':r.status==='contacted'?'#0b4fc9':'#d8344b';
+        const codes=Array.isArray(b.freeFireCodes)?b.freeFireCodes:[];
+        const tradeBadge = `<span style="display:inline-flex;align-items:center;gap:3px;background:linear-gradient(120deg,var(--gold,#ffd43b),#ffb84f);color:#5c3d00;font-size:10.5px;font-weight:900;padding:2px 9px;border-radius:20px;margin-inline-start:6px">⇄ طلب تبادل</span>`;
+        const bodyHtml = isTrade ? `
+          <p>◇ تيك توك: ${esc(b.tiktok||'-')} · ◆ فورتنايت: ${esc(b.fortnite||'-')}</p>
+          ${b.tradeImage?`<img src="${esc(b.tradeImage)}" style="width:70px;height:70px;object-fit:cover;border-radius:10px;margin-top:6px" alt="صورة غرض التبديل">`:'<p style="color:#c4cede">لم يتم إرفاق صورة للغرض المطلوب تبديله</p>'}
+        ` : b.payMethod==='تحويل بنكي' ? `
+          <p>▷ الاسم: ${esc(((b.firstName||'')+' '+(b.lastName||'')).trim()||'-')} · ◇ تيك توك: ${esc(b.tiktok||'-')}</p>
+          <p>▤ الدفع: 🏦 تحويل بنكي إلى ${esc(b.bankAccount||'-')}</p>
+        ` : `
+          <p>▷ الاسم: ${esc(((b.firstName||'')+' '+(b.lastName||'')).trim()||'-')} · ◇ تيك توك: ${esc(b.tiktok||'-')}</p>
+          <p>▤ الدفع: ${esc(b.payMethod||'بطاقات فري فاير 2200 جوهرة')}${b.cardsNeeded?' × '+esc(b.cardsNeeded):''}</p>
+          <div class="admin-code-list"><b>🔐 أكواد فري فاير ضمن الطلب:</b>${codes.length?codes.map((c,i)=>`<div><span>#${i+1}</span><code>${esc(c)}</code></div>`).join(''):'<div>لا توجد أكواد محفوظة</div>'}</div>
+        `;
+        return `<div class="admin-row" style="align-items:flex-start;${isTrade?'border-inline-start:3px solid var(--gold,#ffd43b)':''}">
+          <div class="thumb-sm" style="flex-shrink:0">${isTrade?'⇄':'●'}</div>
+          <div class="info">
+            <h4>طلب #${r.number} — ${esc(r.itemTitle)} <span style="font-weight:800;color:${statusColor};font-size:11px">${statusLabel}</span>${isTrade?tradeBadge:''}</h4>
+            <p style="color:#9aa8c9;font-size:10.5px">${timeAgo(r.createdAt)}${r.itemPrice?' · السعر: '+esc(r.itemPrice):''}</p>
+            ${bodyHtml}
+            <p style="color:#c4cede;font-size:10px">معرّف الطلب: ${esc(r.id)} · معرّف الإعلان: ${esc(r.itemId)}</p>
+          </div>
+          <div class="admin-actions" style="flex-direction:column;gap:5px">
+            ${r.status!=='contacted'?`<button class="icon-btn mid" onclick="setRequestStatus('${escJs(r.id)}','contacted')">◇</button>`:''}
+            ${r.status!=='done'?`<button class="icon-btn ok" onclick="setRequestStatus('${escJs(r.id)}','done')">✓</button>`:`<button class="icon-btn mid" onclick="setRequestStatus('${escJs(r.id)}','new')">↺</button>`}
+            <button class="icon-btn no" onclick="deleteRequest('${escJs(r.id)}')">⌫</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  if(state.showAddModal){
+    html += `
+    <div class="modal-bg" onclick="if(event.target===this) closeAddModal()">
+      <div class="modal">
+        <div class="modal-handle"></div>
+        <h2>${state.editingId?'✎ تعديل الإعلان':'+ نشر إعلان جديد'}</h2>
+        ${(()=>{ const ei = state.editingId ? state.listings.find(x=>x.id===state.editingId) : null; return `
+        <div class="field">
+          <label>ماذا تريد أن تفعل؟</label>
+          <div class="radio-row">
+            <div class="radio-opt sale ${state.formType==='بيع'?'selected':''}" onclick="setFormType('بيع')">● بيع</div>
+            <div class="radio-opt trade ${state.formType==='تبديل'?'selected':''}" onclick="setFormType('تبديل')">⇄ تبديل</div>
+          </div>
+        </div>
+        <div class="field"><label>عنوان الغرض</label><input type="text" id="f_title" value="${esc(ei?.title||'')}" placeholder="اكتب اسم البرينروت..."></div>
+        <div class="field">
+          <label>الفئة — اختر واحدة فقط</label>
+          <div class="radio-row">
+            ${RARITIES.map(r=>`<div class="radio-opt rarity-opt ${state.formRarity===r.id?'selected':''}" data-rarity="${r.id}" style="--r-accent:${r.accent};--r-tint:${r.tint};--r-text:${r.text}" onclick="setFormRarity('${escJs(r.id)}')">${r.label}</div>`).join("")}
+          </div>
+        </div>
+        <div class="field">
+          <label>نوع الماب — اختر واحداً</label>
+          <div class="radio-row">
+            ${MAP_TYPES.map(m=>`<div class="radio-opt ${state.formMapType===m.id?'selected':''}" onclick="setFormMapType('${m.id}')">${m.label}</div>`).join("")}
+          </div>
+        </div>
+        ${state.formType==='بيع' ? `
+        <div class="field"><label>السعر (بالريال) <span style="font-weight:600;color:#9aa7c2">— الحد الأدنى 75 ريال</span></label><input type="number" id="f_price" min="75" value="${esc(ei&&ei.type==='بيع'?ei.price||'':'')}" placeholder="مثال: 500"></div>
+        <div class="field">
+          <label>طريقة استلام المال</label>
+          <div class="payment-choice">
+            <div class="pay-opt ${state.formPaymentMethod==='store'?'selected':''}" onclick="setPaymentMethod('store')">🎁 ستور / بطاقة</div>
+            <div class="pay-opt ${state.formPaymentMethod==='transfer'?'selected':''}" onclick="setPaymentMethod('transfer')">🏦 تحويل بنكي</div>
+          </div>
+          ${state.formPaymentMethod==='store' ? `
+            <div class="payment-store-grid">
+              ${PAYMENT_STORES.map(s=>`<div class="store-opt ${state.formPaymentStore===s.id?'selected':''}" onclick="setPaymentStore('${s.id}')">${s.label}</div>`).join("")}
+            </div>
+          ` : `
+            <input type="text" id="f_bank" value="${esc(state.formBankAccount||'')}" oninput="state.formBankAccount=this.value" placeholder="اكتب رقم الحساب/الرقم البنكي" style="margin-top:8px">
+            <div class="payment-bank-note">اكتب رقم الحساب أو الرقم البنكي فقط. لا تضع كلمة مرور أو رمز تحقق.</div>
+          `}
+        </div>` : `
+        <div class="field"><label>ما الذي تريد التبديل به؟</label><input type="text" id="f_price" value="${esc(ei&&ei.type==='تبديل'?ei.price||'':'')}" placeholder="مثال: أريد هاتف بدلاً منه"></div>`}
+        <div class="field">
+          <label>صور (اختياري، حتى 5 صور)</label>
+          <input type="file" id="f_image" accept="image/*" multiple onchange="onImagePick(event)">
+          <div id="imgPreviewWrap" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">${state.pendingImages.map((im,i)=>`<div style="position:relative"><img src="${esc(im)}" class="img-preview"><button type="button" onclick="removePendingImage(${i})" style="position:absolute;top:-6px;left:-6px;width:20px;height:20px;border-radius:50%;border:0;background:#ff3b3b;color:#fff;font-size:12px;cursor:pointer;line-height:1">✕</button></div>`).join("")}</div>
+        </div>
+        <div class="field"><label>رقم واتساب للتواصل <span style="font-weight:600;color:#9aa7c2">(اختياري)</span></label><input type="text" id="f_contact" value="${esc(ei?.contact||'')}" placeholder="مثال: 201012345678"></div>
+        <div class="field"><label>اسم حساب تيك توك <span style="color:#ff4057">*</span></label><input type="text" id="f_tiktok" value="${esc(ei?.tiktok||'')}" placeholder="مثال: @username"></div>
+        <div class="field"><label>اسم حساب فورتنايت <span style="color:#ff4057">*</span></label><input type="text" id="f_fortnite" value="${esc(ei?.fortnite||'')}" placeholder="مثال: username"></div>
+        <button class="btn-main" onclick="submitListing()">${state.editingId?'✎ حفظ التعديلات':'⌁ نشر الإعلان'}</button>`; })()}
+        <button class="btn-ghost" onclick="closeAddModal()">إلغاء</button>
+      </div>
+    </div>
+    `;
+  }
+
+  if(state.showSuccessModal){
+    html += `<div class="trust-success-bg" onclick="if(event.target===this)closeSuccessModal()">
+      <div class="trust-success">
+        <div class="ts-icon">✓</div>
+        <h3>تم نشر إعلانك بنجاح!</h3>
+        <div class="ts-badge">◈ الطلب الآن قيد المراجعة</div>
+        <p>سيتم نشر غرضك بعد المراجعة. إذا طلب شخص غرضك، سيظهر لك تنبيه وتتم المتابعة عبر الرسائل، وسيتواصل معك أحد المسؤولين لإتمام الاستلام أو التبادل كوسيط بين الطرفين.</p>
+         <div class="notice">مهم: لا تنشر أكواد شحن أو بطاقات قابلة للاسترداد في الإعلان أو في الرسائل العامة. سلّم تفاصيل العملية للمسؤول عبر القناة المعتمدة فقط.</div>
+        <p style="font-weight:900;color:#0b4fc9">شكراً على تعاملك مع Sonic Market ✦</p>
+        <button class="btn-main" onclick="closeSuccessModal()">تم، شكراً</button>
+      </div>
+    </div>`;
+  }
+
+  if(state.showRequestModal && state.requestItemId){
+    const rqItem = state.listings.find(x=>x.id===state.requestItemId);
+    if(!rqItem){ state.showRequestModal=false; }
+    else{
+    const isTrade = rqItem.type==="تبديل";
+    const codesNeeded = calcCodesNeeded(rqItem.price);
+    html += `
+    <div class="modal-bg" onclick="if(event.target===this) closeRequestModal()">
+      <div class="modal">
+        <div class="modal-handle"></div>
+        <h2>▷ طلب: ${esc(rqItem.title)}</h2>
+        ${isTrade ? `
+        <div class="field">
+          <label>ارفع صورة الشيء الذي تريد التبديل به</label>
+          <input type="file" accept="image/*" onchange="onRequestTradeImagePick(event)">
+          ${state.requestTradeImage?`<div style="margin-top:8px"><img src="${esc(state.requestTradeImage)}" class="img-preview"></div>`:""}
+        </div>
+        <div class="field"><label>اسم حساب تيك توك</label><input type="text" id="rq_tiktok" placeholder="مثال: @username"></div>
+        <div class="field"><label>اسم حساب فورتنايت</label><input type="text" id="rq_fortnite" placeholder="مثال: username"></div>
+        ` : `
+        <div class="field"><label>الاسم</label><input type="text" id="rq_first" placeholder="اسمك"></div>
+        <div class="field"><label>اللقب</label><input type="text" id="rq_last" placeholder="لقبك"></div>
+        <div class="field"><label>اسم حساب تيك توك</label><input type="text" id="rq_tiktok2" placeholder="مثال: @username"></div>
+        <div class="field">
+          <label>طريقة الدفع المطلوبة للمشتري — ثابتة لكل إعلانات البيع</label>
+          <div class="security-box" style="background:linear-gradient(120deg,#eef6ff,#f7fbff);color:#17345f;border:1px solid #dce8fa;margin-bottom:8px">
+            سعر الغرض: <b>${esc(rqItem.price||"0")} ريال</b> ← المطلوب: <b>${codesNeeded} × بطاقة فري فاير 2200 جوهرة × 75 ريال</b>
+          </div>
+          <div class="notice" style="background:#fff8df;color:#725500">
+            <b>الحساب الذكي:</b> كل بطاقة = 75 ريال، وعدد الخانات يساوي تقريب السعر ÷ 75 إلى الأعلى. مثال: 75 = 1 كود، 150 = 2، 500 = 7، 750 = 10. لا علاقة لاختيار البائع لطريقة الدفع هنا؛ المشتري يدفع دائماً بأكواد فري فاير.
+          </div>
+          <button type="button" class="btn-ghost" onclick="showFreeFireGuide()">▣ أين أشتري بطاقة فري فاير 2200 جوهرة؟</button>
+          <div class="ff-code-box">
+            <b>أدخل ${codesNeeded} أكواد فري فاير المطلوبة</b>
+            <small>سيتم حفظ جميع الأكواد داخل طلبك ليظهر للمسؤول رقمياً. لا تستخدم أكواداً سبق استردادها.</small>
+            ${freeFireCodeFields(codesNeeded)}
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;font-weight:800;color:#17345f">
+            <input type="checkbox" id="rq_card_ready">
+            اشتريت/وفرت البطاقات المطلوبة وأؤكد أن الأكواد التي أدخلتها صحيحة.
+          </label>
+        </div>`}
+        <button class="btn-main" onclick="submitRequest()">⌁ إرسال الطلب</button>
+        <button class="btn-ghost" onclick="closeRequestModal()">إلغاء</button>
+      </div>
+    </div>
+    `;
+    }
+  }
+
+  if(state.showRequestSuccessModal){
+    html += `<div class="trust-success-bg" onclick="if(event.target===this)closeRequestSuccessModal()">
+      <div class="trust-success">
+        <div class="ts-icon">✓</div>
+        <h3>تم إرسال طلبك بنجاح!</h3>
+        <div class="ts-badge">◈ رقم الطلب #${state.showRequestSuccessModal}</div>
+        <p>سيتواصل معك أحد المسؤولين قريباً لإتمام العملية. احتفظ برقم طلبك وتابع رسائلك الخاصة لاستلام غرضك أو لإتمام التبادل.</p>
+         <div class="notice">مهم: إذا نشر شخص طلباً أو عرضاً، سيقوم أحد المسؤولين بالتواصل معه لإتمام التبادل كوسيط أو لتنظيم تسليم المبلغ حسب طريقة الإعلان. لا ترسل أي كود شحن قابل للاسترداد في نموذج الموقع.</div>
+        <button class="btn-main" onclick="closeRequestSuccessModal()">تم، شكراً</button>
+      </div>
+    </div>`;
+  }
+
+
+
+
+
+
+
+
+  if(state.freeFireGuideOpen){
+    html += `<div class="trust-success-bg" onclick="if(event.target===this)closeFreeFireGuide()">
+      <div class="trust-success" style="text-align:right">
+        <h3>▣ طريقة الحصول على بطاقة فري فاير 2200 جوهرة</h3>
+        <p><b>1.</b> البطاقة المطلوبة هي <b>فري فاير 2200 جوهرة</b>، وقيمة البطاقة <b>75 ريال</b> في المتجرين المذكورين وقت إعداد هذه النسخة.</p>
+        <p><b>2.</b> الشراء: <a href="https://ar-saudi.likecard.com/game-cards/free-fire-cards/freefire-2200.html" target="_blank" rel="noopener">Like Card — 2200 جوهرة / 75 ريال</a></p>
+        <p><b>3.</b> بديل: <a href="https://daleelstore.com/ar/product/free-fire/43/11" target="_blank" rel="noopener">دليل ستور — 2200 جوهرة / 75 ريال</a></p>
+        <p><b>4.</b> 750 ريال = <b>10 بطاقات</b> × 75 ريال. النظام يحسب العدد تلقائياً حسب سعر الإعلان.</p>
+        <p><b>5.</b> بعد الشراء، أدخل كل كود في خانته داخل الطلب. لا تكرر الكود ولا تستخدم كوداً مسترداً سابقاً.</p>        <div class="notice"><b>مهم جداً:</b> لا تكتب الأكواد في الإعلان أو التعليقات العامة. أدخلها فقط في خانات الأكواد داخل طلب الشراء، ثم يتعامل معها المسؤول عبر الطلب.</div>
+        <button class="btn-main" onclick="closeFreeFireGuide()">فهمت</button>
+      </div>
+    </div>`;
+  }
+
+  if(state.profileOpen){
+    const mine=state.listings.filter(x=>x.sellerName===state.currentUser?.name && x.status!=="deleted");
+    html += `<div class="detail-bg" onclick="if(event.target===this)closeProfile()"><div class="detail">
+      <div class="profile-head"><button class="detail-close" style="right:8px;left:auto" onclick="closeProfile()">✕</button>
+      <div class="big-avatar">${esc(state.currentUser?.avatar||"✦")}</div>
+      <div style="font-size:18px;font-weight:900">${esc(state.currentUser?.name||"زائر سونيك")}</div>
+      <div style="font-size:10px;opacity:.75">عضو في Sonic Market</div></div>
+      <div class="profile-body">
+      <div class="security-box"><b>⬡ حماية محلية مفعّلة</b><span>بيانات هذه النسخة محفوظة محلياً على جهازك. لا يتم إرسالها إلى أي سيرفر من هذا الملف وحده.</span></div><div class="trust-row"><span class="trust-pill">⬡ محلي</span><span class="trust-pill">✦ سريع</span><span class="trust-pill">▣ Backup</span><span class="trust-pill">▭ Mobile</span></div>
+      <div class="profile-stats">
+      <div class="profile-stat"><b>${mine.filter(x=>x.status==="approved").length}</b><span>منشورة</span></div>
+      <div class="profile-stat"><b>${state.favorites.length}</b><span>مفضلة</span></div>
+      <div class="profile-stat"><b>${state.viewed.length}</b><span>شوهدت</span></div></div>
+      <div class="notice">✧ هذه نسخة مستقلة. عند ربط Backend تصبح الحسابات والبيانات مشتركة بين الأجهزة.</div>
+      <div class="admin-section">
+        <h3>▤ منشوراتي (${mine.length})</h3>
+        ${mine.length===0?`<div class="empty" style="padding:16px;"><div class="emoji" style="font-size:28px;">✧</div>لم تنشر أي إعلان بعد</div>`:mine.slice().sort((a,b)=>b.createdAt-a.createdAt).map(it=>{
+          const statusLabel = it.status==='approved' ? (it.hidden?'مخفي عن الزوار':'منشور') : (it.status==='pending'?'بانتظار المراجعة':'مرفوض');
+          const statusColor = it.status==='approved' ? (it.hidden?'#d8344b':'#138552') : '#d8930b';
+          return `<div class="admin-row">
+            <div class="thumb-sm">${it.image?`<img src="${esc(it.image)}">`:(CAT_ICONS[it.category]||"◆")}</div>
+            <div class="info">
+              <h4>${esc(it.title)} <span style="font-weight:800;color:${statusColor};font-size:11px">${statusLabel}</span></h4>
+              <p>${esc(it.category)} | ${esc(it.mapType||"ماب نطه")} ${it.price?" | ● "+esc(it.price)+(it.type==='بيع'?' ريال':''):''}</p>
+            </div>
+            <div class="admin-actions">
+              <button class="icon-btn mid" onclick="openEditModal('${escJs(it.id)}')" title="تعديل">✎</button>
+              <button class="icon-btn no" onclick="deleteMyListing('${escJs(it.id)}')" title="حذف">⌫</button>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+      <button class="btn-main" onclick="editProfile()">✎ تعديل الاسم</button><button class="btn-ghost" onclick="closeProfile()">إغلاق</button></div>
+    </div></div>`;
+  }
+
+  if(state.selectedItem){
+    const it=state.selectedItem;
+    html += `<div class="detail-bg" onclick="if(event.target===this)closeDetails()">
+      <div class="detail ${it.type==='بيع'?'type-sale':'type-trade'}" role="dialog" aria-modal="true" aria-label="تفاصيل الإعلان">
+        <div style="position:relative">
+          <button class="detail-close" onclick="closeDetails()">✕</button>
+          ${(()=>{
+  const imgs=Array.isArray(it.images)&&it.images.length?it.images:[it.image].filter(Boolean);
+  if(!imgs.length)return `<div class="detail-image" style="display:flex;align-items:center;justify-content:center;font-size:72px">${CAT_ICONS[it.category]||"◆"}</div>`;
+  return `<div class="gallery"><div class="gallery-main"><img class="detail-image" src="${esc(imgs[state.selectedGallery%imgs.length])}" alt="${esc(it.title)}">${imgs.length>1?`<button onclick="nextGallery(-1)" aria-label="السابق" style="position:absolute;top:50%;right:8px;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.85);font-size:16px;cursor:pointer">›</button><button onclick="nextGallery(1)" aria-label="التالي" style="position:absolute;top:50%;left:8px;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.85);font-size:16px;cursor:pointer">‹</button>`:""}</div>
+  ${imgs.length>1?`<div class="gallery-thumbs">${imgs.map((im,i)=>`<img class="${i===state.selectedGallery?'active':''}" src="${esc(im)}" onclick="state.selectedGallery=${i};render()">`).join("")}</div>`:""}</div>`;
+})()}
+        </div>
+        <div class="detail-meta">
+          ${state.settings.showCategoryBadge?`<span class="badge ${it.type==='بيع'?'sale':'trade'}" style="position:static">${it.type==='بيع'?'●':'⇄'} ${it.type}</span>`:""}
+          <span style="font-size:11px;color:#8293b6;font-weight:800">${esc(it.category)} · ${esc(it.mapType||"ماب نطه")}</span>
+        </div>
+        <h2>${esc(it.title)}</h2>
+        ${state.settings.showViews?engagementChips(it):""}
+        <div class="trust-note">⬡ هذا الإعلان تمت مراجعته ونشره من الإدارة.</div>
+        ${state.settings.showPrice?`<div style="font-size:18px;font-weight:900;color:${it.type==='بيع'?'#ff4057':'#b8860b'};margin:10px 0">
+          ${it.type==='بيع'?(it.price?esc(it.price)+" ريال":"السعر عند التواصل"):"⇄ "+esc(it.price||"للتبديل")}
+        </div>`:""}
+        <div class="card-actions">
+          <button class="contact-btn wa" onclick="openRequestModal('${escJs(it.id)}')">▷ طلب</button>
+          <button class="contact-btn" onclick="shareItem('${escJs(it.id)}')">↗ مشاركة</button>
+        </div>
+        <div class="share-row"><button class="btn-ghost" onclick="toggleFavorite('${escJs(it.id)}')">${state.favorites.includes(it.id)?'♥ إزالة من المفضلة':'♡ إضافة للمفضلة'}</button><button class="btn-ghost report-btn" style="flex:1" onclick="reportItem('${escJs(it.id)}')">⌖ الإبلاغ عن الإعلان</button></div>
+      </div>
+    </div>`;
+  }
+  if(state.toast){ html += `<div class="toast">${esc(state.toast)}</div>`; }
+  app.innerHTML = html;
+}
+
+
+function hydrateUserPrefs(){
+  try{
+    const p=JSON.parse(localStorage.getItem("sonic_market_prefs_v9999")||"{}");
+    state.favorites=Array.isArray(p.favorites)?p.favorites:[];
+    state.sort=p.sort||"newest"; state.viewed=Array.isArray(p.viewed)?p.viewed:[];
+    state.currentUser=p.currentUser||null;
+  }catch(e){}
+}
+function persistUserPrefs(){
+  try{localStorage.setItem("sonic_market_prefs_v9999",JSON.stringify({
+    favorites:state.favorites,sort:state.sort,viewed:state.viewed,currentUser:state.currentUser
+  }))}catch(e){}
+}
+function ensureUser(){
+  if(!state.currentUser){state.currentUser={id:"user_"+Date.now(),name:"زائر سونيك",avatar:"✦",joined:Date.now()};persistUserPrefs();}
+}
+// Every visitor (not just the admin) gets a real, silent Supabase session via
+// anonymous sign-in. This is what lets the database know *who* owns each
+// listing (via owner_id = auth.uid()) so RLS can allow a person to edit or
+// delete only their own listings — without needing a login screen for
+// ordinary sellers. Requires "Anonymous sign-ins" enabled in the Supabase
+// project (Authentication → Providers).
+let __cloudAuthPromise = null;
+function ensureCloudAuth(){
+  if(!sb) return Promise.resolve(null);
+  if(!__cloudAuthPromise){
+    __cloudAuthPromise = (async()=>{
+      try{
+        const { data } = await sb.auth.getSession();
+        if(data && data.session) return data.session;
+        const { data: signInData, error } = await sb.auth.signInAnonymously();
+        if(error){ console.error("Anonymous sign-in failed", error); return null; }
+        return signInData ? signInData.session : null;
+      }catch(e){
+        console.error("ensureCloudAuth failed", e);
+        return null;
+      }
+    })();
+  }
+  return __cloudAuthPromise;
+}
+function editProfile(){
+  ensureUser(); const n=prompt("اكتب اسم العرض:",state.currentUser.name);
+  if(n&&n.trim()){state.currentUser.name=n.trim().slice(0,28);persistUserPrefs();render();showToast("✧ تم تحديث ملفك");}
+}
+function toggleFavorite(id){
+  const i=state.favorites.indexOf(id); if(i>=0)state.favorites.splice(i,1);else state.favorites.push(id);
+  persistUserPrefs();render();
+}
+function setQuick(v){state.favoritesView=v==="favorites";render()}
+function setSort(v){state.sort=v;persistUserPrefs();render()}
+function openDetails(id){
+  const target = state.listings.find(x=>x.id===id);
+  if(target && target.hidden && !(state.view==="admin"&&state.adminAuthed)){
+    showToast("⊘ هذا الإعلان غير متاح حالياً"); return;
+  }
+  state.selectedItem=target||null;state.selectedGallery=0;
+  if(state.selectedItem){
+    state.selectedItem.views=(state.selectedItem.views||0)+1;
+    state.viewed=[id,...state.viewed.filter(x=>x!==id)].slice(0,12); recordActivity("◉","فتح إعلان: "+(state.selectedItem.title||""));
+    persistUserPrefs();saveListings();
+    // View counts are incremented through a narrow RPC function instead of a
+    // raw table update, since ordinary visitors are no longer allowed to
+    // update listing rows directly (only the owner or the admin can).
+    if(sb) sb.rpc("increment_listing_views", { p_id: id }).then(()=>{},()=>{});
+  }
+  render();
+}
+function closeDetails(){state.selectedItem=null;render()}
+function openSharedItemFromHash(){
+  try{
+    const m = location.hash.match(/item=([^&]+)/);
+    if(!m) return;
+    const id = decodeURIComponent(m[1]);
+    const it = state.listings.find(x=>x.id===id);
+    if(it && it.status==="approved" && !it.hidden){
+      openDetails(id);
+    }
+  }catch(e){}
+}
+function nextGallery(d){
+  const it=state.selectedItem,imgs=(it&&Array.isArray(it.images)&&it.images.length)?it.images:[it&&it.image].filter(Boolean);
+  if(imgs.length>1){state.selectedGallery=(state.selectedGallery+d+imgs.length)%imgs.length;render();}
+}
+function shareItem(id){
+  const it=state.listings.find(x=>x.id===id);if(!it)return;
+  const url=location.href.split("#")[0]+"#item="+encodeURIComponent(id);
+  if(navigator.share)navigator.share({title:it.title,text:"شاهد هذا الإعلان في سوق سونيك",url}).catch(()=>{});
+  else if(navigator.clipboard)navigator.clipboard.writeText(url).then(()=>showToast("↗ تم نسخ الرابط"));
+}
+function reportItem(id){
+  const reason=prompt("سبب البلاغ؟");if(!reason)return;
+  const rep = {id:"report_"+Date.now(),itemId:id,reason:reason.slice(0,120),createdAt:Date.now()};
+  state.reports.push(rep); state.notifications.push("بلاغ جديد"); recordActivity("⌖","بلاغ على إعلان");
+  try{localStorage.setItem("sonic_market_reports_v9999",JSON.stringify(state.reports))}catch(e){}
+  syncToCloud(()=>sb.from("reports").insert(reportToRow(rep)), "✕ تعذر إرسال البلاغ إلى السحابة");
+  showToast("⌖ تم إرسال البلاغ للإدارة");
+}
+function openProfile(){ensureUser();state.profileOpen=true;render()}
+function closeProfile(){state.profileOpen=false;render()}
+function copyContact(v){if(!v)return;if(navigator.clipboard)navigator.clipboard.writeText(v).then(()=>showToast("▤ تم النسخ"));else showToast("▷ "+v)}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(state.profileOpen)closeProfile();else if(state.selectedItem)closeDetails();}});
+
+
+function installHintDismiss(){
+  try{localStorage.setItem("sonic_install_hint","1")}catch(e){}
+  render();
+}
+function scrollTopFast(){window.scrollTo({top:0,behavior:"smooth"})}
+function goHome(){state.search="";state.categoryFilter="الكل";state.favoritesView=false;setView("market");scrollTopFast()}
+function openAdmin(){setView("admin");scrollTopFast()}
+function saveReports(){try{localStorage.setItem("sonic_market_reports_v9999",JSON.stringify(state.reports))}catch(e){}}
+async function loadReports(){
+  if(sb && state.adminAuthed){
+    try{
+      const { data, error } = await sb.from("reports").select("*").order("created_at",{ascending:false});
+      if(error) throw error;
+      state.reports = (data||[]).map(rowToReport);
+      saveReports();
+      render();
+      return;
+    }catch(e){
+      console.warn("Supabase reports load failed, using local cache", e);
+    }
+  }
+  try{ state.reports=JSON.parse(localStorage.getItem("sonic_market_reports_v9999")||"[]"); if(!Array.isArray(state.reports)) state.reports=[]; }catch(e){ state.reports=[]; }
+  render();
+}
+function dismissReport(id){
+  state.reports=state.reports.filter(x=>x.id!==id); saveReports(); render(); showToast("✓ تم إغلاق البلاغ");
+  syncToCloud(()=>sb.from("reports").delete().eq("id",id));
+}
+function clearAllLocalData(){
+  if(!confirm("سيتم حذف بيانات النسخة المحلية بالكامل. هل أنت متأكد؟"))return;
+  try{
+    localStorage.removeItem("sonic_market_listings_v99");
+    localStorage.removeItem("sonic_market_prefs_v9999");
+    localStorage.removeItem("sonic_market_reports_v9999");
+  }catch(e){}
+  location.reload();
+}
+function exportBackup(){
+  const payload={version:"999999999999",createdAt:new Date().toISOString(),listings:state.listings,reports:state.reports,prefs:{
+    favorites:state.favorites,currentUser:state.currentUser,viewed:state.viewed
+  }};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="sonic-market-backup-999999999999.json";a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);showToast("▣ تم إنشاء نسخة احتياطية");
+}
+function importBackupFile(input){
+  const file=input.files?.[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const p=JSON.parse(r.result);
+      if(!Array.isArray(p.listings))throw new Error("bad");
+      state.listings=p.listings;
+      state.reports=Array.isArray(p.reports)?p.reports:[];
+      if(p.prefs){
+        state.favorites=Array.isArray(p.prefs.favorites)?p.prefs.favorites:[];
+        state.currentUser=p.prefs.currentUser||state.currentUser;
+        state.viewed=Array.isArray(p.prefs.viewed)?p.prefs.viewed:[];
+        persistUserPrefs();
+      }
+      sanitizeState();
+      saveReports();saveListings();render();showToast("◆ تم استيراد النسخة الاحتياطية");
+      if(sb){
+        syncToCloud(async ()=>{
+          await sb.from("listings").upsert(state.listings.map(listingToRow));
+          return sb.from("reports").upsert(state.reports.map(reportToRow));
+        }, "✕ تم الاستيراد محلياً لكن تعذرت مزامنته مع السحابة");
+      }
+    }catch(e){showToast("✕ ملف النسخة الاحتياطية غير صالح")}
+  };
+  r.readAsText(file);
+}
+function updateScrollProgress(){
+  const d=document.documentElement;
+  const max=d.scrollHeight-d.clientHeight;
+  const p=max?Math.min(100,(scrollY/max)*100):0;
+  const el=document.getElementById("topProgress");if(el)el.style.width=p+"%";
+}
+window.addEventListener("scroll",updateScrollProgress,{passive:true});
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();state.deferredPrompt=e;render()});
+async function promptInstall(){
+  if(!state.deferredPrompt){showToast("▭ استخدم قائمة المتصفح لإضافة الموقع للشاشة الرئيسية");return}
+  state.deferredPrompt.prompt();await state.deferredPrompt.userChoice;state.deferredPrompt=null;render();
+}
+
+
+
+function markAllNotificationsRead(){state.notifications=[];render()}
+function clearRecent(){state.viewed=[];persistUserPrefs();render();showToast("⌫ تم مسح السجل")}
+function getRecentItems(){return state.viewed.map(id=>state.listings.find(x=>x.id===id)).filter(x=>x && x.status==="approved" && !x.hidden).slice(0,8)}
+function getStats(){
+ const approved=state.listings.filter(x=>x.status==="approved");
+ const views=approved.reduce((n,x)=>n+(x.views||0),0);
+ return {approved:approved.length,pending:state.listings.filter(x=>x.status==="pending").length,views};
+}
+function isSellerVerified(sellerName){
+ if(!sellerName)return false;
+ return state.listings.filter(x=>x.sellerName===sellerName && x.status==="approved").length>=3;
+}
+/* Engagement chips — the age chip and "in your favorites" chip use real
+   data. The view-count and "hype" chips are simulated: seeded from the
+   item id so a given item always shows the same numbers (no jumping
+   around on refresh), growing slowly with the item's age. */
+function seedFromId(id){
+  let h=0; for(let i=0;i<(id||"").length;i++){ h=(h*31+id.charCodeAt(i))>>>0; }
+  return h;
+}
+function fakeViews(it){
+  const seed=seedFromId(it.id);
+  const base=6+(seed%35);
+  const ageHours=Math.max(0,(Date.now()-(it.createdAt||Date.now()))/3600000);
+  const growth=Math.min(180,Math.floor(ageHours*(2+(seed%5))));
+  return base+growth;
+}
+function fakeHype(it){ return seedFromId((it.id||"")+"_hype")%100; }
+function engagementChips(it){
+  const chips=[];
+  const ageMin=Math.floor((Date.now()-(it.createdAt||Date.now()))/60000);
+  const favCount=state.favorites.includes(it.id)?1:0;
+  const views=fakeViews(it);
+  const hype=fakeHype(it);
+  if(ageMin<180) chips.push(`<span class="ls-chip"><span class="ls-dot"></span>جديد · ${ageMin<1?'الآن':timeAgo(it.createdAt)}</span>`);
+  chips.push(`<span class="ls-chip">◉ ${views} مشاهدة</span>`);
+  if(views>=25) chips.push(`<span class="ls-chip hot">✦ رائج</span>`);
+  if(hype>=70) chips.push(`<span class="ls-chip hot">◈ طلب مرتفع الآن</span>`);
+  else if(hype>=45) chips.push(`<span class="ls-chip">⚡ اهتمام كبير</span>`);
+  if(favCount) chips.push(`<span class="ls-chip">♥ في مفضلتك</span>`);
+  if(!chips.length) return "";
+  return `<div class="live-stats">${chips.join("")}</div>`;
+}
+
+
+function recordActivity(icon,label){
+ state.activity=[{icon,label,time:Date.now()},...(state.activity||[])].slice(0,25);
+ try{localStorage.setItem("sonic_market_activity_v999999999999999",JSON.stringify(state.activity))}catch(e){}
+}
+function loadActivity(){try{state.activity=JSON.parse(localStorage.getItem("sonic_market_activity_v999999999999999")||"[]")}catch(e){state.activity=[]}}
+function timeAgo(t){
+ const s=Math.max(0,Math.floor((Date.now()-t)/1000));
+ if(s<60)return "الآن"; if(s<3600)return Math.floor(s/60)+" د"; if(s<86400)return Math.floor(s/3600)+" س"; return Math.floor(s/86400)+" ي";
+}
+function openSearch(){document.querySelector(".search-row input")?.focus();scrollTopFast()}
+
+
+function toggleSmart(){state.smartMode=!state.smartMode;render();showToast(state.smartMode?"◈ الوضع الذكي مفعّل":"◈ الوضع الذكي متوقف")}
+function smartMessage(){
+  const s=getStats();
+  if(s.pending>0)return `◈ لديك ${s.pending} طلبات تنتظر مراجعة المسؤول.`;
+  if(s.approved===0)return "◈ ابدأ أول سوق لك بنشر إعلان جديد.";
+  if(s.views>0)return `✦ السوق يتحرك — إجمالي المشاهدات ${s.views}.`;
+  return "✧ السوق جاهز لأول زائر.";
+}
+function productContact(id){
+  const it=state.listings.find(x=>x.id===id);
+  if(!it)return;
+  if(it.contact){copyContact(it.contact);recordActivity("▷","نسخ وسيلة التواصل: "+it.title);showToast("▤ تم نسخ وسيلة التواصل")}
+  else showToast("لا توجد وسيلة تواصل لهذا الإعلان");
+}
+
+
+function openCustomerOrders(ev){
+  try{
+    if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+  }catch(_){}
+  state.adminFilter='orders';
+  state.adminSearch='';
+  render();
+  requestAnimationFrame(()=>{
+    const panel=document.getElementById('customer-orders-fallback');
+    if(panel) panel.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+function setAdminFilter(filter){
+  const allowed = ["pending","approved","orders","reports","all","settings"];
+  if(!allowed.includes(filter)) return;
+  state.adminFilter = filter;
+  state.adminSearch = "";
+  render();
+  requestAnimationFrame(()=>{
+    const el = document.querySelector(`[data-admin-filter="${filter}"]`);
+    if(el) el.scrollIntoView({block:"nearest",inline:"center"});
+  });
+}
+function setView(v){ state.view = v; if(v==="admin" && state.adminAuthed) markAllNotificationsRead(); render(); }
+function onSearch(v){ state.search = v; render(); }
+function onCategoryChange(v){ state.categoryFilter = v; render(); }
+function setFormType(t){ state.formType = t; state.formDraft.type=t; render(); }
+function openAddModal(){
+  state.showAddModal = true; state.editingId = null; state.pendingImages = [];
+  state.formType = "بيع"; state.formRarity = "سكريت"; state.formMapType = "ماب نطه";
+  state.formPaymentMethod = "store"; state.formPaymentStore = "gamepass"; state.formBankAccount = "";
+  render();
+}
+function openEditModal(id){
+  const it = state.listings.find(x=>x.id===id);
+  if(!it) return;
+  state.showAddModal = true;
+  state.editingId = id;
+  state.pendingImages = Array.isArray(it.images) ? it.images.slice() : (it.image?[it.image]:[]);
+  state.formType = it.type||"بيع";
+  state.formRarity = it.category||"سكريت";
+  state.formMapType = it.mapType||"ماب نطه";
+  state.formPaymentMethod = it.paymentMethod||"store";
+  state.formPaymentStore = it.paymentStore||"gamepass";
+  state.formBankAccount = it.bankAccount||"";
+  state.profileOpen = false;
+  render();
+  renderImgPreview();
+}
+function closeAddModal(){ state.showAddModal = false; state.editingId = null; render(); }
+function closeSuccessModal(){ state.showSuccessModal = false; render(); }
+function renderImgPreview(){
+  const wrap = document.getElementById("imgPreviewWrap");
+  if(!wrap) return;
+  wrap.innerHTML = state.pendingImages.map((im,i)=>`<div style="position:relative"><img src="${esc(im)}" class="img-preview"><button type="button" onclick="removePendingImage(${i})" style="position:absolute;top:-6px;left:-6px;width:20px;height:20px;border-radius:50%;border:0;background:#ff3b3b;color:#fff;font-size:12px;cursor:pointer;line-height:1">✕</button></div>`).join("");
+}
+function onImagePick(e){
+  const files = Array.from(e.target.files||[]).slice(0, 5 - state.pendingImages.length);
+  if(!files.length) return;
+  let remaining = files.length;
+  files.forEach(file=>{
+    fileToCompressedDataUrl(file, (dataUrl)=>{
+      state.pendingImages.push(dataUrl);
+      remaining--;
+      if(remaining===0) renderImgPreview();
+    });
+  });
+}
+function removePendingImage(i){ state.pendingImages.splice(i,1); renderImgPreview(); }
+function setFormRarity(r){ state.formRarity = r; render(); }
+function setFormMapType(m){ state.formMapType = m; render(); }
+function setPaymentMethod(method){
+  state.formPaymentMethod = method;
+  render();
+}
+function setPaymentStore(store){
+  state.formPaymentStore = store;
+  state.formPaymentMethod = "store";
+  render();
+}
+function submitListing(){
+  ensureUser();
+
+  const title = document.getElementById("f_title").value.trim();
+  const category = state.formRarity;
+  const price = document.getElementById("f_price").value.trim();
+  const contact = document.getElementById("f_contact").value.trim();
+  const tiktok = document.getElementById("f_tiktok").value.trim();
+  const fortnite = document.getElementById("f_fortnite").value.trim();
+  const bankInput = document.getElementById("f_bank");
+  if(bankInput) state.formBankAccount = bankInput.value.trim();
+  if(!title){ showToast("△ من فضلك اكتب عنوان الغرض"); return; }
+  if(!tiktok){ showToast("△ من فضلك أدخل اسم حساب تيك توك"); return; }
+  if(!fortnite){ showToast("△ من فضلك أدخل اسم حساب فورتنايت"); return; }
+  if(state.formType==="بيع"){
+    const priceNum = parseFloat((price||"").replace(/[^0-9.]/g,""))||0;
+    if(!price || priceNum < 75){ showToast("△ الحد الأدنى للسعر هو 75 ريال"); return; }
+    if(state.formPaymentMethod==="transfer" && !state.formBankAccount){ showToast("△ من فضلك اكتب رقم الحساب البنكي"); return; }
+  }
+  const payload = {
+    title, category, mapType: state.formMapType, price, contact, tiktok, fortnite, type: state.formType, images: state.pendingImages,
+    paymentMethod: state.formType==="بيع" ? state.formPaymentMethod : null,
+    paymentStore: state.formType==="بيع" && state.formPaymentMethod==="store" ? state.formPaymentStore : null,
+    bankAccount: state.formType==="بيع" && state.formPaymentMethod==="transfer" ? state.formBankAccount : null,
+  };
+  if(state.editingId){
+    updateListing(state.editingId, payload);
+  } else {
+    addListing(payload);
+  }
+  state.showAddModal = false;
+  state.editingId = null;
+  render();
+}
+function deleteMyListing(id){
+  if(!softDeleteLocal(id)) return;
+  saveListings(); render(); showToast("⌫ تم حذف إعلانك (يمكن للإدارة استرجاعه إذا لزم)");
+  (async()=>{ await ensureCloudAuth(); syncToCloud(()=>sb.rpc("soft_delete_listing",{p_id:id}), "✕ تعذر مزامنة الحذف مع السحابة"); })();
+}
+function updateListing(id, data){
+  const it = state.listings.find(x=>x.id===id);
+  if(!it) return;
+  const imgs = Array.isArray(data.images) ? data.images.filter(Boolean) : [];
+  Object.assign(it, {
+    title: data.title, type: data.type, price: data.price, category: data.category, mapType: data.mapType||"ماب نطه",
+    contact: data.contact, paymentMethod: data.paymentMethod||null, paymentStore: data.paymentStore||null,
+    bankAccount: data.bankAccount||null, tiktok: data.tiktok, fortnite: data.fortnite,
+    image: imgs[0]||it.image||null, images: imgs.length?imgs:it.images,
+    status: "pending"
+  });
+  saveListings();
+  recordActivity("✎","تعديل إعلان: "+it.title);
+  showToast("✎ تم حفظ التعديلات — سيُعاد نشره بعد المراجعة");
+  (async()=>{ await ensureCloudAuth(); syncToCloud(()=>sb.from("listings").update(listingToRow(it)).eq("id",id)); })();
+}
+async function tryAdminLogin(){
+  if(!sb){ showToast("✕ الاتصال بالسحابة غير متاح — لا يمكن تسجيل الدخول"); return; }
+  const email = (document.getElementById("adminEmailInput")||{}).value?.trim();
+  const pass = (document.getElementById("adminPassInput")||{}).value;
+  if(!email || !pass){ showToast("△ أدخل البريد الإلكتروني وكلمة السر"); return; }
+  const btn = document.getElementById("adminLoginBtn");
+  if(btn){ btn.disabled = true; btn.textContent = "...جارٍ الدخول"; }
+  try{
+    const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if(error){ showToast("✕ بيانات الدخول غير صحيحة"); return; }
+    state.adminAuthed = true;
+    markAllNotificationsRead();
+    render();
+    // Admin sees the full data set (RLS grants extra visibility once authenticated).
+    // maybeAutoSnapshot() reads state.listings, so it must wait for loadListings()
+    // to actually finish populating it rather than firing in parallel with it.
+    await loadListings();
+    loadRequests(); loadReports(); loadSiteSettings();
+    await maybeAutoSnapshot();
+  }catch(e){
+    console.error("admin login failed", e);
+    showToast("✕ تعذر الاتصال بالخادم");
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = "دخول ✦"; }
+  }
+}
+// Independent cloud backup layer: every time the real admin logs in (at most
+// once per 6 hours), the current full listings snapshot is stored in the
+// listings_snapshots table via an admin-only RPC. This survives even if the
+// listings table itself is ever emptied by mistake — it's a second, separate
+// place the data lives, not just the local browser cache.
+const SNAPSHOT_THROTTLE_KEY = "sonic_last_auto_snapshot_v1";
+async function maybeAutoSnapshot(){
+  if(!sb || !state.adminAuthed) return;
+  try{
+    const last = storageAvailable() ? parseInt(localStorage.getItem(SNAPSHOT_THROTTLE_KEY)||"0",10) : 0;
+    if(Date.now() - last < 6*60*60*1000) return; // throttle: once per 6h
+    if(!state.listings || state.listings.length===0) return; // never snapshot an empty state
+    const { error } = await sb.rpc("save_listings_snapshot", { p_data: state.listings });
+    if(error) throw error;
+    if(storageAvailable()) localStorage.setItem(SNAPSHOT_THROTTLE_KEY, String(Date.now()));
+  }catch(e){ console.warn("auto snapshot failed", e); }
+}
+async function adminLogout(){
+  state.adminAuthed = false;
+  if(sb){ try{ await sb.auth.signOut(); }catch(e){ console.error("signOut failed", e); } }
+  state.requests = []; state.reports = [];
+  __cloudAuthPromise = null;
+  ensureCloudAuth();
+  render();
+}
+async function restoreAdminSession(){
+  if(!sb) return;
+  try{
+    const { data } = await sb.auth.getSession();
+    // An anonymous visitor session also counts as "a session" — only treat a
+    // real (non-anonymous) signed-in session as the admin being logged in.
+    if(data && data.session && !data.session.user?.is_anonymous){
+      state.adminAuthed = true;
+      render();
+      loadRequests(); loadReports();
+    }
+  }catch(e){ console.error("session restore failed", e); }
+}
+
+if(!window.__sonicAdminFilterBound){
+  window.__sonicAdminFilterBound = true;
+  // Bound once on "click" only (not also "pointerup") — binding both fired this
+  // handler twice per tap on touch devices, double-triggering navigation.
+  const handleAdminFilterPointer = function(e){
+    const btn = e.target && e.target.closest ? e.target.closest("[data-admin-filter]") : null;
+    if(!btn) return;
+    const filter = btn.getAttribute("data-admin-filter");
+    if(filter === "orders") return openCustomerOrders(e);
+    e.preventDefault();
+    e.stopPropagation();
+    setAdminFilter(filter);
+  };
+  document.addEventListener("click", handleAdminFilterPointer, true);
+}
+
+// Global safety nets: a single unexpected error should never leave the whole
+// site permanently unresponsive. These log the problem and, if the app looks
+// broken, fall back to the recovery screen instead of a silent freeze.
+window.addEventListener("error", function(e){
+  console.error("Uncaught error:", e.error || e.message);
+  try{
+    const app = document.getElementById("app");
+    if(app && !app.innerHTML.trim()) renderCrashScreen(e.error || new Error(e.message||"خطأ غير معروف"));
+  }catch(_){}
+});
+window.addEventListener("unhandledrejection", function(e){
+  console.error("Unhandled promise rejection:", e.reason);
+});
+
+try{ hydrateUserPrefs(); }catch(e){ console.error("hydrateUserPrefs failed", e); }
+try{ state.reports=JSON.parse(localStorage.getItem("sonic_market_reports_v9999")||"[]"); if(!Array.isArray(state.reports)) state.reports=[]; }catch(e){ state.reports=[]; }
+try{ ensureUser(); }catch(e){ console.error("ensureUser failed", e); }
+try{ loadActivity(); }catch(e){ console.error("loadActivity failed", e); }
+try{ state.lastSync=Date.now(); }catch(e){}
+try{ sanitizeState(); }catch(e){ console.error("sanitizeState failed", e); }
+render();
+ensureCloudAuth();
+restoreAdminSession();
+loadListings();
+loadSiteSettings();
+loadRequests();
+
+// Realtime: keep everyone's screen in sync automatically when the admin
+// approves/edits a listing elsewhere, without needing a manual refresh.
+// Wrapped defensively — if realtime isn't reachable, the app still works
+// fine on the load/save calls above, just without the live push.
+if(sb){
+  try{
+    sb.channel("public:listings")
+      .on("postgres_changes", { event:"*", schema:"public", table:"listings" }, ()=>{ loadListings(); })
+      .subscribe();
+    sb.channel("public:site_settings")
+      .on("postgres_changes", { event:"*", schema:"public", table:"site_settings" }, ()=>{ loadSiteSettings(); })
+      .subscribe();
+  }catch(e){ console.warn("Realtime subscription failed (non-fatal)", e); }
+}
+</script>
+</body>
+</html>
