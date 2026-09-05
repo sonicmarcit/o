@@ -1,0 +1,1112 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F6EFE1">
+<title>SWAPFIRE — تبديل حسابات الألعاب بين اللاعبين</title>
+<meta name="description" content="سواب فاير: أداة مجتمعية تنسّق تبديل حسابات الألعاب بين اللاعبين برمز واحد لكل عملية، مع مراجعة يدوية من مسؤول قبل اعتماد أي تبديل.">
+<!-- ملاحظة: swapfire.example نطاق تجريبي محجوز رسميًا للتوثيق (RFC 2606). استبدله بنطاق الموقع الحقيقي بعد النشر حتى تعمل الميتاداتا وبيانات JSON-LD بشكل صحيح لدى محركات البحث. -->
+<link rel="canonical" href="https://swapfire.example/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SWAPFIRE">
+<meta property="og:title" content="SWAPFIRE — تبديل حسابات الألعاب بين اللاعبين">
+<meta property="og:description" content="أنشئ عملية تبديل واحصل على رمز فوري، شاركه مع الطرف الثاني، وليراجع المسؤول الطرفين قبل الاعتماد.">
+<meta property="og:locale" content="ar_AR">
+<meta property="og:url" content="https://swapfire.example/">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='rgb(185,62,39)'/%3E%3Cpath d='M32 10c-2 10-14 14-14 26a14 14 0 0 0 28 0c0-7-4-10-6-14 0 5-3 7-5 7-3 0-4-3-3-7 2-5 1-9 0-12z' fill='rgb(217,114,47)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;500;600;700&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+
+<!-- JSON-LD — الزاوية 1: هوية الموقع والمؤسسة -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://swapfire.example/#organization",
+      "name": "SWAPFIRE",
+      "alternateName": "سواب فاير",
+      "url": "https://swapfire.example/",
+      "description": "أداة مجتمعية تنسّق عمليات تبديل حسابات الألعاب بين اللاعبين تحت إشراف مسؤول يراجع كل عملية قبل اعتمادها.",
+      "inLanguage": "ar"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://swapfire.example/#website",
+      "url": "https://swapfire.example/",
+      "name": "SWAPFIRE",
+      "inLanguage": "ar",
+      "publisher": { "@id": "https://swapfire.example/#organization" }
+    }
+  ]
+}
+</script>
+
+<style>
+:root{
+  --paper:#F6EFE1; --card:#FFFFFF; --card-2:#FBF6EC;
+  --ink:#221B12; --ink-soft:#5C4E3C; --ink-mute:#8F8069;
+  --line:#E6DAC0; --line-2:#D6C39C;
+  --ember:#B93E27; --flame:#D9722F; --gold:#B98A34;
+  --teal:#0E7684; --teal-soft:#E4F2F2;
+  --good:#2E7D4F; --good-bg:#E8F5EC;
+  --warn:#9B6512; --warn-bg:#FAF0D8;
+  --bad:#A83A3A; --bad-bg:#FAEAE9;
+  --fire:linear-gradient(120deg,var(--ember),var(--flame));
+  --vault:#152227; --vault-2:#1D343B; --bone:#241C10;
+  --seam:linear-gradient(160deg,#F0C877,#B9832E);
+  --r-lg:20px; --r-md:12px;
+  --shadow:0 20px 44px -22px rgba(60,40,15,.32);
+  --shadow-sm:0 8px 18px -10px rgba(60,40,15,.22);
+  --ease:cubic-bezier(.22,.9,.28,1);
+  --dur-1:.15s; --dur-2:.28s;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background-color:var(--paper);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");color:var(--ink);font-family:'Tajawal',system-ui,sans-serif;overflow-x:hidden}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+::selection{background:var(--gold);color:#fff}
+h1,h2.display{font-family:'Reem Kufi','Tajawal',system-ui,sans-serif;font-weight:600}
+h3{margin:0;font-weight:800}
+.btn:focus-visible,.top-link:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+
+/* Topbar */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(246,239,225,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.topbar-inner{max-width:1180px;margin:auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;transition:padding var(--dur-2) var(--ease)}
+.topbar.scrolled .topbar-inner{padding:9px 20px}
+.brand{border:0;background:none;display:flex;align-items:center;gap:9px;padding:0}
+.brand-mark{width:30px;height:30px;border-radius:9px;background:var(--fire);display:grid;place-items:center;color:#fff;font-family:'Reem Kufi',sans-serif;font-weight:700;font-size:16px;box-shadow:0 4px 10px -4px rgba(185,62,39,.55)}
+.brand-name{font-weight:800;font-size:17px;letter-spacing:-.2px;color:var(--ink)}
+.brand-name b{font-weight:900;color:var(--ember)}
+.top-actions{position:relative;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.nav-indicator{position:absolute;top:0;height:100%;background:var(--ink);border-radius:999px;z-index:0;transition:left var(--dur-2) var(--ease),width var(--dur-2) var(--ease)}
+.top-link{position:relative;z-index:1;border:0;background:transparent;color:var(--ink-soft);padding:9px 14px;border-radius:999px;font-weight:700;font-size:12.5px;transition:color var(--dur-1)}
+.top-link:hover{color:var(--ink)}
+.top-link:hover:not(.active){background:var(--card-2)}
+.top-link.active{color:var(--paper)}
+
+.container{max-width:1180px;margin:auto;padding:0 20px 60px}
+.page{display:none}
+.page.active{display:block;animation:pageIn .22s ease}
+@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Hero — the seam (the one deliberately animated moment on the page) */
+.hero-seam{position:relative;display:grid;grid-template-columns:1fr 1fr;border-radius:26px;overflow:hidden;box-shadow:var(--shadow);margin:22px 0 54px}
+.seam-panel{position:relative;padding:58px 44px;overflow:hidden}
+.seam-panel.light{background:var(--card);color:var(--ink)}
+.seam-panel.dark{background:radial-gradient(120% 140% at 30% 20%,var(--vault-2),var(--vault) 70%);color:#EDE4D2}
+.seam-line{position:absolute;top:0;bottom:0;left:50%;width:1px;transform:translateX(-50%);background:linear-gradient(180deg,transparent,#D8AE5F 12%,#D8AE5F 88%,transparent);z-index:3}
+.seam-seal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:78px;height:78px;border-radius:50%;z-index:5;display:grid;place-items:center;background:var(--seam);box-shadow:0 10px 26px -8px rgba(185,131,46,.65),inset 0 0 0 3px rgba(255,255,255,.35)}
+.seam-seal span{font-family:'Reem Kufi',sans-serif;font-weight:700;font-size:19px;color:#3B2A0E;letter-spacing:1px}
+.seam-seal:before{content:"";position:absolute;inset:-9px;border-radius:50%;border:1.5px dashed rgba(216,174,95,.7);animation:sealSpin 22s linear infinite}
+@keyframes sealSpin{to{transform:rotate(360deg)}}
+
+.hero-eyebrow,.hero h1,.hero-desc,.hero-cta,.seam-tag,.swap-stage,.swap-status{opacity:0;animation:riseIn .6s var(--ease) forwards}
+.hero-eyebrow{animation-delay:.05s}
+.hero h1{animation-delay:.15s}
+.hero-desc{animation-delay:.28s}
+.hero-cta{animation-delay:.4s}
+.seam-tag{animation-delay:.2s}
+.swap-stage{animation-delay:.34s}
+.swap-status{animation-delay:.5s}
+@keyframes riseIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--teal);background:var(--teal-soft);border:1px solid #CDE6E6;border-radius:999px;padding:6px 13px;margin-bottom:18px}
+.hero-eyebrow i{width:6px;height:6px;border-radius:50%;background:var(--teal);display:inline-block;flex:none}
+.hero h1{font-size:clamp(26px,3.4vw,36px);line-height:1.32;margin:0 0 14px;color:var(--ink);overflow-wrap:break-word}
+.hero-desc{max-width:440px;margin:0;color:var(--ink-soft);font-size:14px;line-height:1.95;overflow-wrap:break-word}
+.hero-cta{margin-top:26px}
+.btn-swap{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:420px;border:0;background:linear-gradient(120deg,var(--ember),#C9832F);color:#fff;border-radius:16px;padding:18px 22px;font-size:15.5px;font-weight:800;box-shadow:0 14px 30px -12px rgba(185,62,39,.55);transition:transform var(--dur-1),box-shadow var(--dur-1)}
+.btn-swap:hover{transform:translateY(-1px);box-shadow:0 18px 34px -12px rgba(185,62,39,.62)}
+.btn-swap:active{transform:translateY(0)}
+.btn-swap svg{flex:none}
+.hero-secondary{margin-top:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.link-plain{border:0;background:none;color:var(--ink-soft);font-weight:700;font-size:12.5px;text-decoration:underline;text-underline-offset:3px;padding:2px}
+.link-plain:hover{color:var(--ink)}
+.hero-note{margin:0;color:var(--ink-mute);font-size:11.5px}
+
+/* Dark panel — the trade visual */
+.seam-tag{position:relative;z-index:1;display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:#D8AE5F;background:rgba(216,174,95,.12);border:1px solid rgba(216,174,95,.35);border-radius:999px;padding:6px 12px;margin-bottom:22px}
+.embers{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.ember-particle{position:absolute;bottom:-10px;width:3px;height:3px;border-radius:50%;background:#D8AE5F;box-shadow:0 0 6px 2px rgba(216,174,95,.65);opacity:0;animation:emberRise linear infinite}
+.ember-particle:nth-child(1){left:8%;animation-duration:6.5s;animation-delay:.2s}
+.ember-particle:nth-child(2){left:22%;animation-duration:5.2s;animation-delay:2.1s}
+.ember-particle:nth-child(3){left:38%;animation-duration:7.4s;animation-delay:.8s}
+.ember-particle:nth-child(4){left:55%;animation-duration:5.8s;animation-delay:3.4s}
+.ember-particle:nth-child(5){left:71%;animation-duration:6.9s;animation-delay:1.5s}
+.ember-particle:nth-child(6){left:86%;animation-duration:5.5s;animation-delay:2.8s}
+@keyframes emberRise{0%{transform:translateY(0) scale(.7);opacity:0}12%{opacity:.9}88%{opacity:.3}100%{transform:translateY(-210px) scale(1.15);opacity:0}}
+.swap-stage{position:relative;z-index:1;max-width:300px}
+.swap-card{position:relative;z-index:2;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(237,228,210,.16);backdrop-filter:blur(2px);padding:15px;display:flex;align-items:center;gap:12px}
+.swap-card.card-a{margin-inline-end:30px}
+.swap-card.card-b{margin-inline-start:30px;margin-top:14px}
+.swap-avatar{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;font-weight:700;font-size:15px;color:#fff}
+.swap-card.card-a .swap-avatar{background:linear-gradient(135deg,#3E7CB1,#274F73)}
+.swap-card.card-b .swap-avatar{background:linear-gradient(135deg,#D8AE5F,#9A6E28)}
+.swap-card-body{min-width:0}
+.swap-card-body b{display:block;font-size:12px;color:#F3ECDC}
+.swap-card-body span{display:block;font-size:10px;color:#B7AC97;margin-top:2px}
+.swap-link{position:absolute;top:54px;bottom:54px;inset-inline-start:34px;width:2px;background:repeating-linear-gradient(180deg,rgba(216,174,95,.45) 0 5px,transparent 5px 11px);z-index:1}
+.swap-link .spark{position:absolute;inset-inline-start:-3px;width:8px;height:8px;border-radius:50%;background:#F0C877;box-shadow:0 0 12px 3px rgba(216,174,95,.8);animation:sparkMove 2.6s ease-in-out infinite}
+@keyframes sparkMove{0%{top:0;opacity:0}14%{opacity:1}50%{top:calc(100% - 8px)}86%{opacity:1}100%{top:calc(100% - 8px);opacity:0}}
+.swap-status{margin-top:20px;display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:#D8AE5F}
+.swap-status i{width:6px;height:6px;border-radius:50%;background:#D8AE5F;box-shadow:0 0 0 4px rgba(216,174,95,.18);display:inline-block;animation:statusPulse 2.4s ease-in-out infinite}
+@keyframes statusPulse{0%,100%{box-shadow:0 0 0 4px rgba(216,174,95,.18)}50%{box-shadow:0 0 0 7px rgba(216,174,95,.06)}}
+
+/* How it works */
+.section-head{margin:56px 0 22px}
+.section-head h2.display{margin:0;font-size:clamp(22px,3vw,27px);color:var(--ink)}
+.section-head p{margin:6px 0 0;color:var(--ink-mute);font-size:12.5px}
+.steps{list-style:none;margin:0 0 40px;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;background:var(--card)}
+.step{position:relative;padding:26px 22px}
+.step:not(:first-child){border-inline-start:1.5px dashed var(--line-2)}
+.step-num{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--card-2);border:1.5px solid #D8AE5F;color:var(--ember);font-weight:900;font-size:15px;margin-bottom:16px;font-family:'Reem Kufi',sans-serif}
+.step h3{font-size:14.5px;margin-bottom:7px}
+.step p{margin:0;font-size:12px;line-height:1.85;color:var(--ink-soft)}
+
+.note-strip{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:56px}
+.note-chip{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 14px;font-size:11.5px;color:var(--ink-soft);display:flex;align-items:center;gap:8px}
+.note-chip svg{flex:none;color:var(--teal)}
+
+/* FAQ */
+.faq-list{display:grid;gap:10px;margin-bottom:20px}
+.faq-item{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:2px 18px}
+.faq-item[open]{border-color:var(--line-2)}
+.faq-item summary{list-style:none;cursor:pointer;padding:16px 0;display:flex;justify-content:space-between;align-items:center;gap:14px;font-weight:800;font-size:13px;color:var(--ink)}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary .chevron{flex:none;transition:transform var(--dur-2) var(--ease);color:var(--ink-mute)}
+.faq-item[open] summary .chevron{transform:rotate(180deg);color:var(--ember)}
+.faq-item p{margin:0 0 16px;font-size:12px;line-height:1.9;color:var(--ink-soft)}
+
+/* Shared shell / card / form */
+.shell{max-width:840px;margin:0 auto;padding-top:30px}
+.card{border:1px solid var(--line);background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
+.card-head{padding:24px 24px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:15px;align-items:flex-start}
+.card-head h2{margin:0;font-size:22px;color:var(--ink);font-family:'Reem Kufi',sans-serif;font-weight:600}
+.card-head p{margin:6px 0 0;font-size:12px;color:var(--ink-soft);line-height:1.8}
+.back{border:1px solid var(--line-2);background:var(--card-2);color:var(--ink-soft);border-radius:10px;padding:8px 12px;font-size:11px;font-weight:800;flex:none;transition:background var(--dur-1)}
+.back:hover{background:var(--line)}
+.form{padding:24px}
+.step-title{display:flex;align-items:center;gap:10px;margin:2px 0 14px}
+.step-badge{width:27px;height:27px;border-radius:9px;background:var(--card-2);border:1px solid var(--line-2);color:var(--ember);display:grid;place-items:center;font-size:11px;font-weight:900}
+.step-title b{font-size:12.5px;color:var(--ink)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{min-width:0}
+.field.full{grid-column:1/-1}
+.field label{display:block;font-size:11px;color:var(--ink);font-weight:800;margin-bottom:6px}
+.field input,.field textarea,.field select{width:100%;border:1.5px solid var(--line-2);background:var(--card);color:var(--ink);border-radius:var(--r-md);padding:11px 13px;outline:0;font-size:13px;transition:border-color var(--dur-1),box-shadow var(--dur-1)}
+.field input::placeholder,.field textarea::placeholder{color:var(--ink-mute)}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(14,118,132,.14)}
+.field-icon{position:relative}
+.field-icon svg{position:absolute;inset-inline-start:13px;top:50%;transform:translateY(-50%);color:var(--ink-mute);pointer-events:none}
+.field-icon input{padding-inline-start:36px}
+.field.shake{animation:shake .4s ease}
+@keyframes shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
+.toggle-group{display:flex;gap:8px}
+.toggle-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line-2);background:var(--card);color:var(--ink-soft);border-radius:var(--r-md);padding:11px 14px;font-size:12.5px;font-weight:800;transition:border-color var(--dur-1),background var(--dur-1)}
+.toggle-btn:hover{border-color:var(--ink-mute)}
+.toggle-btn.active{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.toggle-ic{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;font-size:9.5px;font-weight:900;flex:none;color:#fff}
+.toggle-ic.tg-google{background:var(--teal)}
+.toggle-ic.tg-facebook{background:var(--gold)}
+.toggle-ic.tg-whatsapp{background:var(--good)}
+textarea{min-height:90px;resize:vertical}
+.hint{margin-top:5px;color:var(--ink-mute);font-size:10px;line-height:1.8}
+.security-note{margin:0 0 16px;border:1px solid #E9CE93;background:var(--warn-bg);color:#7A5310;border-radius:12px;padding:11px 13px;font-size:11px;line-height:1.85;font-weight:500}
+.divider{height:1px;background:var(--line);margin:22px 0}
+.upload-box{border:1.5px dashed var(--line-2);background:var(--card-2);border-radius:16px;padding:18px;text-align:center;transition:border-color var(--dur-1),background var(--dur-1)}
+.upload-box.dragover{border-color:var(--teal);background:var(--teal-soft)}
+.upload-box b{font-size:12px;color:var(--ink)}
+.upload-box p{font-size:10.5px;color:var(--ink-mute);margin:4px 0 9px}
+.upload-box input{width:100%;font-size:11px;color:var(--ink-soft)}
+.previews{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:11px}
+.preview-img{position:relative}
+.preview-img img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px;border:1px solid var(--line-2)}
+.preview-img button{position:absolute;top:4px;left:4px;width:22px;height:22px;border:0;border-radius:7px;background:rgba(34,27,18,.78);color:#fff;font-size:11px}
+.form-footer{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:24px;flex-wrap:wrap}
+.form-footer small{color:var(--ink-mute);font-size:10px;line-height:1.8}
+.form-footer .actions{display:flex;gap:8px}
+.btn{border:1.5px solid var(--line-2);background:var(--card);color:var(--ink);border-radius:var(--r-md);padding:12px 18px;font-size:13px;font-weight:800;transition:transform var(--dur-1),border-color var(--dur-1),box-shadow var(--dur-1);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn:hover{border-color:var(--ink-mute);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn.primary{background:var(--fire);border-color:transparent;color:#fff;box-shadow:var(--shadow-sm)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.small{padding:8px 12px;font-size:11px;border-radius:10px}
+.btn.danger{color:var(--bad);border-color:#F0C4C4;background:var(--bad-bg)}
+.result{padding:26px;text-align:center;border-top:1px solid var(--line);background:var(--card-2)}
+.result-check{width:52px;height:52px;margin:0 auto 12px;border-radius:50%;background:var(--good-bg);display:grid;place-items:center}
+.result-check svg path{stroke-dasharray:24;stroke-dashoffset:24;animation:checkDraw .5s var(--ease) .1s forwards}
+@keyframes checkDraw{to{stroke-dashoffset:0}}
+.result>div:first-child{font-weight:800;font-size:15px;color:var(--ink)}
+.result-code{display:inline-block;border:1px solid var(--line-2);background:var(--card);border-radius:18px;padding:15px 22px;margin:8px 0 12px}
+.result-code small{display:block;color:var(--ink-mute);font-size:9px}
+.result-code strong{display:block;font-family:'Reem Kufi',sans-serif;color:var(--ember);font-size:28px;letter-spacing:3px;margin-top:5px;font-weight:700}
+.result p{color:var(--ink-soft);font-size:11px;line-height:1.85;margin:0 auto 14px;max-width:480px}
+.result-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+
+/* Join */
+.join-start{max-width:600px;margin:60px auto}
+.code-entry{padding:30px}
+.code-entry h2{margin:0;font-size:25px;color:var(--ink);font-family:'Reem Kufi',sans-serif;font-weight:600}
+.code-entry p{color:var(--ink-soft);font-size:12px;line-height:1.85;margin:6px 0 20px}
+.code-row{display:flex;gap:9px}
+.code-row input{flex:1;min-width:0;border:1.5px solid var(--line-2);background:var(--card);color:var(--ink);border-radius:var(--r-md);padding:13px 14px;outline:0;text-align:center;text-transform:uppercase;letter-spacing:4px;font-size:18px;font-weight:800;transition:border-color var(--dur-1),box-shadow var(--dur-1)}
+.code-row input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(14,118,132,.14)}
+.code-row input::placeholder{color:var(--ink-mute);letter-spacing:2px;font-weight:600}
+.join-feedback{margin-top:13px;border-radius:13px;padding:12px 13px;font-size:11px;line-height:1.85;border:1px solid var(--line-2);background:var(--card-2);color:var(--ink-soft)}
+.join-feedback.ok{border-color:#BFE4CB;background:var(--good-bg);color:#236B44}
+.join-feedback.bad{border-color:#F0C4C4;background:var(--bad-bg);color:#8E3131}
+
+/* Track */
+.track{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 15px}
+.track-step{position:relative;border:1px solid var(--line-2);background:var(--card-2);border-radius:13px;padding:11px}
+.track-step small{display:block;color:var(--ink-mute);font-size:8px}
+.track-step b{display:block;font-size:10.5px;margin-top:2px;color:var(--ink-soft)}
+.track-step.on{border-color:var(--teal);background:var(--teal-soft)}
+.track-step.on small,.track-step.on b{color:var(--teal)}
+.track-step.done{border-color:#BFE4CB;background:var(--good-bg)}
+.track-step.done small,.track-step.done b{color:var(--good)}
+
+/* Admin */
+.admin-wrap{padding-top:30px}
+.admin-login{max-width:420px;margin:70px auto;padding:30px}
+.lock{width:52px;height:52px;margin:0 auto 14px;border-radius:15px;background:var(--fire);color:#fff;display:grid;place-items:center;font-weight:900;font-size:15px}
+.admin-login h2{text-align:center;margin:0;font-size:23px;color:var(--ink);font-family:'Reem Kufi',sans-serif;font-weight:600}
+.admin-login p{text-align:center;color:var(--ink-soft);font-size:11px;line-height:1.85;margin:6px 0 20px}
+.admin-login .field{margin-bottom:10px}
+.admin-login .btn{width:100%}
+.admin-board{display:none}
+.admin-board.open{display:block}
+.admin-head{display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:16px;flex-wrap:wrap}
+.admin-head h2{margin:0;font-size:23px;color:var(--ink);font-family:'Reem Kufi',sans-serif;font-weight:600}
+.admin-head p{margin:5px 0 0;color:var(--ink-mute);font-size:11px}
+.admin-head .actions{display:flex;gap:7px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.stat{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:14px}
+.stat small{display:block;color:var(--ink-mute);font-size:10px}
+.stat b{display:block;font-family:'Reem Kufi',sans-serif;font-size:24px;margin-top:4px;color:var(--ink);font-weight:700}
+.stats .stat:first-child b{color:var(--ember)}
+.status-chart{display:flex;align-items:center;gap:16px;border:1px solid var(--line);background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px}
+.status-chart svg{flex:none}
+.status-legend{display:grid;gap:6px;font-size:10.5px;color:var(--ink-soft)}
+.status-legend span{display:inline-flex;align-items:center;gap:6px}
+.status-legend i{width:8px;height:8px;border-radius:50%;flex:none}
+.tools{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:10px;display:flex;gap:8px;margin-bottom:12px}
+.tools .field-icon{flex:1;min-width:0}
+.tools .field-icon input{padding-inline-start:34px}
+.tools .field-icon svg{inset-inline-start:11px}
+.tools input,.tools select{width:100%;border:1.5px solid var(--line-2);background:var(--card-2);color:var(--ink);border-radius:10px;padding:9px 11px;font-size:11px;outline:0}
+.tools select{flex:1;min-width:0}
+.ops{display:grid;gap:10px}
+.op{border:1px solid var(--line);background:var(--card);border-radius:18px;overflow:hidden;border-inline-start:4px solid var(--line-2)}
+.op:has(.badge.green){border-inline-start-color:var(--good)}
+.op:has(.badge.amber){border-inline-start-color:var(--warn)}
+.op:has(.badge.red){border-inline-start-color:var(--bad)}
+.op-head{padding:14px 16px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.op-code{font-family:'Reem Kufi',sans-serif;font-size:17px;letter-spacing:1px;color:var(--ember);font-weight:700}
+.op-date{font-size:9px;color:var(--ink-mute);margin-top:3px}
+.badge{padding:5px 10px;border-radius:999px;font-size:9.5px;font-weight:800;background:var(--card-2);border:1px solid var(--line-2);color:var(--ink-soft)}
+.badge.green{background:var(--good-bg);border-color:#BFE4CB;color:var(--good)}
+.badge.amber{background:var(--warn-bg);border-color:#EBD69C;color:var(--warn)}
+.badge.red{background:var(--bad-bg);border-color:#F0C4C4;color:var(--bad)}
+.op-body{padding:0 16px 16px}
+.people{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.person{border:1px solid var(--line);background:var(--card-2);border-radius:13px;padding:12px}
+.person-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px}
+.person h4{margin:0;font-size:11.5px;color:var(--ink)}
+.person p{margin:3px 0;font-size:9px;color:var(--ink-soft);word-break:break-word;line-height:1.75}
+.thumbs{display:flex;gap:5px;margin-top:7px;overflow:auto}
+.thumbs img{width:52px;height:42px;object-fit:cover;border-radius:7px;border:1px solid var(--line-2);flex:none}
+.op-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.op-actions .btn{font-size:10px;padding:7px 10px}
+.empty{border:1px dashed var(--line-2);border-radius:16px;padding:36px 24px;text-align:center;color:var(--ink-mute)}
+.empty svg{margin-bottom:10px;color:var(--line-2)}
+.empty p{margin:0;font-size:11px}
+.empty small{display:block;margin-top:4px;font-size:10px}
+
+/* Modal / toast */
+.modal{position:fixed;inset:0;background:rgba(34,27,18,.45);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:18px;z-index:100}
+.modal.open{display:flex}
+.modal-card{width:min(760px,100%);max-height:88vh;overflow:auto;border:1px solid var(--line);background:var(--card);border-radius:22px;box-shadow:var(--shadow);animation:modalIn var(--dur-2) var(--ease)}
+@keyframes modalIn{from{opacity:0;transform:scale(.97) translateY(6px)}to{opacity:1;transform:none}}
+.modal-head{position:sticky;top:0;padding:16px 18px;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;z-index:2}
+.modal-head h3{margin:0;font-size:15px;color:var(--ink)}
+.modal-close{border:1px solid var(--line-2);background:var(--card-2);color:var(--ink-soft);border-radius:9px;width:31px;height:31px}
+.modal-body{padding:18px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.detail-box{border:1px solid var(--line);background:var(--card-2);border-radius:14px;padding:13px}
+.detail-box h4{margin:0 0 8px;font-size:11px;color:var(--ink)}
+.detail-box p{margin:3px 0;color:var(--ink-soft);font-size:9.5px;line-height:1.8;word-break:break-word}
+.detail-images{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}
+.detail-images img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px;border:1px solid var(--line-2)}
+.toast{position:fixed;right:18px;bottom:18px;z-index:120;max-width:360px;padding:12px 15px;border-radius:12px;border:1px solid var(--line);border-inline-start:3px solid var(--ember);background:var(--card);color:var(--ink);box-shadow:var(--shadow);font-size:11px;opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity var(--dur-2),transform var(--dur-2);display:flex;align-items:center;gap:10px;overflow:hidden}
+.toast.show{opacity:1;transform:none}
+.toast .toast-ic{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--card-2);color:var(--ember)}
+.toast.success{border-inline-start-color:var(--good)}
+.toast.success .toast-ic{color:var(--good);background:var(--good-bg)}
+.toast.error{border-inline-start-color:var(--bad)}
+.toast.error .toast-ic{color:var(--bad);background:var(--bad-bg)}
+.toast-text{flex:1;min-width:0}
+.toast-bar{position:absolute;bottom:0;inset-inline-start:0;height:2px;background:var(--line-2);width:0}
+.toast.show .toast-bar{animation:toastShrink 2.6s linear forwards}
+@keyframes toastShrink{from{width:100%}to{width:0%}}
+
+/* Footer */
+.site-foot{border-top:1px solid var(--line);margin-top:20px}
+.site-foot-inner{max-width:1180px;margin:auto;padding:34px 20px 44px;display:grid;grid-template-columns:1.4fr 1fr;gap:30px}
+.foot-about p{margin:10px 0 0;color:var(--ink-mute);font-size:11px;line-height:1.9;max-width:440px}
+.foot-links h4{margin:0 0 10px;font-size:11.5px;color:var(--ink)}
+.foot-links{display:flex;flex-direction:column;gap:8px}
+.foot-links button{border:0;background:none;padding:0;text-align:inherit;color:var(--ink-soft);font-size:11.5px;font-weight:700}
+.foot-links button:hover{color:var(--ember)}
+
+@media(max-width:900px){
+  .hero-seam{grid-template-columns:1fr}
+  .seam-line{top:0;bottom:auto;left:0;right:0;height:1px;width:auto;background:linear-gradient(90deg,transparent,#D8AE5F 12%,#D8AE5F 88%,transparent)}
+  .seam-panel{padding:44px 26px}
+  .seam-panel.dark{padding-top:60px}
+  .steps{grid-template-columns:1fr}
+  .step:not(:first-child){border-inline-start:0;border-top:1.5px dashed var(--line-2)}
+  .track{grid-template-columns:1fr 1fr}
+  .status-chart{flex-direction:column;text-align:center}
+  .site-foot-inner{grid-template-columns:1fr;gap:22px}
+}
+@media(max-width:640px){
+  .topbar-inner{padding:12px 14px}
+  .top-link{font-size:10px;padding:8px 10px}
+  .container{padding:0 14px 46px}
+  .hero-seam{margin-top:16px;border-radius:22px}
+  .seam-panel{padding:40px 20px}
+  .btn-swap{max-width:none;font-size:15px;padding:17px 18px}
+  .swap-stage{max-width:260px}
+  .card-head{padding:18px 16px}
+  .card-head h2{font-size:20px}
+  .form{padding:18px}
+  .grid,.people,.detail-grid{grid-template-columns:1fr}
+  .field.full{grid-column:auto}
+  .previews{grid-template-columns:repeat(3,1fr)}
+  .form-footer{flex-direction:column;align-items:stretch}
+  .form-footer .actions,.form-footer .actions .btn{width:100%}
+  .code-row{flex-direction:column}
+  .stats{grid-template-columns:1fr 1fr}
+  .tools{flex-direction:column}
+  .op-head{flex-direction:column}
+  .detail-images{grid-template-columns:repeat(3,1fr)}
+  .toast{left:14px;right:14px;bottom:14px;max-width:none;text-align:center;justify-content:center}
+  .faq-item{padding:2px 14px}
+}
+@media(max-width:480px){
+  .nav-indicator{display:none}
+  .top-link.active{background:var(--ink)}
+}
+</style>
+</head>
+<body>
+<header class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <button class="brand" onclick="navigate('home')" aria-label="SWAPFIRE">
+      <span class="brand-mark">SF</span>
+      <span class="brand-name">SWAP<b>FIRE</b></span>
+    </button>
+    <nav class="top-actions" id="topActions">
+      <span class="nav-indicator" id="navIndicator" aria-hidden="true"></span>
+      <button class="top-link active" data-page="home" onclick="navigate('home')">الرئيسية</button>
+      <button class="top-link" data-page="create" onclick="navigate('create')">إنشاء تبديل</button>
+      <button class="top-link" data-page="join" onclick="navigate('join')">دخول برمز</button>
+      <button class="top-link" data-page="admin" onclick="navigate('admin')">المسؤول</button>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section id="page-home" class="page active">
+    <div class="hero-seam">
+      <div class="seam-panel light">
+        <span class="hero-eyebrow"><i></i>أداة مجتمعية لتبديل حسابات الألعاب بين اللاعبين</span>
+        <h1>بدّل حسابك مع لاعب آخر، برمز واحد يتابعه المسؤول حتى النهاية</h1>
+        <p class="hero-desc">تنشئ عملية تبديل وتحصل على رمز فوري، ترسله للطرف الثاني ليكمل بياناته من جهازه، ثم يراجع المسؤول الطرفين قبل اعتماد التبديل.</p>
+        <div class="hero-cta">
+          <button class="btn-swap" onclick="navigate('create')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 7h11l-3-3M17 17H6l3 3" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            ابدأ عملية تبديل — احصل على رمزك الآن
+          </button>
+          <div class="hero-secondary">
+            <span class="hero-note">عندك رمز من طرف ثاني؟</span>
+            <button class="link-plain" onclick="navigate('join')">أدخله من هنا</button>
+          </div>
+        </div>
+      </div>
+      <div class="seam-panel dark">
+        <div class="embers" aria-hidden="true">
+          <span class="ember-particle"></span><span class="ember-particle"></span><span class="ember-particle"></span>
+          <span class="ember-particle"></span><span class="ember-particle"></span><span class="ember-particle"></span>
+        </div>
+        <span class="seam-tag">توثيق يدًا بيد</span>
+        <div class="swap-stage">
+          <div class="swap-card card-a">
+            <span class="swap-avatar">G</span>
+            <div class="swap-card-body"><b>حساب الطرف الأول</b><span>مرتبط بغوغل</span></div>
+          </div>
+          <div class="swap-link" aria-hidden="true"><span class="spark"></span></div>
+          <div class="swap-card card-b">
+            <span class="swap-avatar">F</span>
+            <div class="swap-card-body"><b>حساب الطرف الثاني</b><span>مرتبط بفيسبوك</span></div>
+          </div>
+        </div>
+        <div class="swap-status"><i></i>تتم مراجعة كل عملية قبل اعتمادها</div>
+      </div>
+      <div class="seam-line"></div>
+    </div>
+
+    <!-- JSON-LD — الزاوية 2: وصف الأداة نفسها كخدمة ويب -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "SWAPFIRE",
+      "url": "https://swapfire.example/",
+      "description": "أداة ويب تتيح للاعبين إنشاء عملية تبديل حسابات بينهما عبر رمز فريد لكل عملية، مع لوحة مسؤول لمراجعة الطرفين واعتماد التبديل أو فتح نزاع.",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "أي متصفح ويب حديث",
+      "inLanguage": "ar",
+      "isAccessibleForFree": true,
+      "author": { "@id": "https://swapfire.example/#organization" },
+      "featureList": [
+        "إنشاء عملية تبديل والحصول على رمز فوري",
+        "مشاركة الرمز مع الطرف الثاني لإكمال بياناته",
+        "لوحة مسؤول لمراجعة الطرفين واعتماد التبديل أو فتح نزاع"
+      ]
+    }
+    </script>
+
+    <div class="section-head"><h2 class="display">كيف تعمل العملية</h2><p>ثلاث خطوات من الإنشاء إلى الاعتماد، بدون تسجيل مسبق</p></div>
+    <ol class="steps">
+      <li class="step"><span class="step-num">1</span><h3>أنشئ العملية</h3><p>أدخل بيانات حسابك وارفع صور الإثبات، وتحصل فورًا على رمز خاص بهذه العملية فقط.</p></li>
+      <li class="step"><span class="step-num">2</span><h3>شارك الرمز</h3><p>أرسل الرمز للطرف الثاني فقط. يفتحه من جهازه ويكمل بياناته بنفس الطريقة.</p></li>
+      <li class="step"><span class="step-num">3</span><h3>مراجعة واعتماد</h3><p>يراجع المسؤول بيانات الطرفين قبل اعتماد أي تسليم. لا يُسلَّم أي حساب تلقائيًا بمجرد الحصول على الرمز، وإذا تبيّن أن بيانات أحد الطرفين غير صحيحة يُلغى التبديل.</p></li>
+    </ol>
+
+    <!-- JSON-LD — الزاوية 3: خطوات العملية كـ HowTo -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "كيف تعمل عملية التبديل في SWAPFIRE",
+      "description": "ثلاث خطوات من إنشاء عملية التبديل إلى اعتمادها من قبل المسؤول.",
+      "step": [
+        { "@type": "HowToStep", "position": 1, "name": "أنشئ العملية", "text": "أدخل بيانات حسابك وارفع صور الإثبات، وتحصل فورًا على رمز خاص بهذه العملية فقط.", "url": "https://swapfire.example/#create" },
+        { "@type": "HowToStep", "position": 2, "name": "شارك الرمز", "text": "أرسل الرمز للطرف الثاني فقط. يفتحه من جهازه ويكمل بياناته بنفس الطريقة.", "url": "https://swapfire.example/#join" },
+        { "@type": "HowToStep", "position": 3, "name": "مراجعة واعتماد", "text": "يراجع المسؤول بيانات الطرفين، ثم يحدّث حالة العملية حتى تكتمل أو يفتح نزاعًا عند الحاجة.", "url": "https://swapfire.example/#admin" }
+      ]
+    }
+    </script>
+
+    <div class="note-strip">
+      <span class="note-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M13 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M9 8l4 4-4 4M13 12H3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>لا تحتاج لإنشاء حساب لبدء أول عملية</span>
+      <span class="note-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><circle cx="8.5" cy="10" r="1.5" fill="currentColor"/><path d="M21 15l-5-5-9 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>الصور تُضغط وتُحفظ من جهازك مباشرة</span>
+      <span class="note-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M10.3 3.9 2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>الرمز لا يسلّم الحساب فورًا — أي بيانات غير صحيحة تُلغي التبديل</span>
+    </div>
+
+    <div class="section-head"><h2 class="display">أسئلة يتكرر طرحها</h2><p>كل ما يخص الأمان وسير عملية التبديل خطوة بخطوة</p></div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>ما الفرق بين «الربط الأساسي» و«طريقة التواصل»؟<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+        <p>الربط الأساسي يوضح إن كان الحساب مرتبطًا بغوغل أو فيسبوك، أما طريقة التواصل فهي القناة التي يستخدمها المسؤول للتواصل معك (واتساب أو فيسبوك) أثناء متابعة العملية.</p>
+      </details>
+      <details class="faq-item">
+        <summary>ماذا يحدث بعد أن أرسل الرمز للطرف الثاني؟<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+        <p>يفتح الطرف الثاني صفحة «دخول برمز» من جهازه، يُدخل الرمز، ثم يكمل بياناته بالخطوات نفسها. تتحول حالة العملية إلى «تم الربط» تمهيدًا لمراجعة المسؤول.</p>
+      </details>
+      <details class="faq-item">
+        <summary>من يستطيع رؤية بيانات عمليتي؟<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+        <p>في هذه النسخة التجريبية تُحفظ البيانات على متصفح كل جهاز على حدة، والمسؤول يراجعها من لوحته على نفس الجهاز. لعمل حقيقي بين أجهزة مختلفة يجب مزامنة العمليات مع خادم.</p>
+      </details>
+      <details class="faq-item">
+        <summary>ماذا لو لم يستجب الطرف الثاني للرمز؟<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+        <p>يبقى الرمز صالحًا بحالة «بانتظار الطرف الثاني» دون حد زمني في هذه النسخة. تواصل معه مباشرة لتذكيره، أو راجع الأمر مع المسؤول.</p>
+      </details>
+      <details class="faq-item">
+        <summary>ماذا لو اختلفت بيانات الطرفين بعد المطابقة؟<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+        <p>يستخدم المسؤول خيار «نزاع» من لوحته لإيقاف اعتماد التبديل مؤقتًا حتى تُحل المشكلة بمراجعة إضافية.</p>
+      </details>
+      <details class="faq-item">
+        <summary>هل يحصل الطرف الآخر على حسابي فور إدخال بياناتي والحصول على الرمز؟<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+        <p>لا. إنشاء العملية أو الانضمام إليها والحصول على رمز أو حالة «تم الربط» لا يعني تسليم أي حساب بشكل مباشر أو تلقائي. لا يكتمل التبديل إلا بعد أن يراجع المسؤول بيانات الطرفين ويعتمد العملية، وإذا تبيّن أن بيانات أحد الطرفين غير صحيحة يتم إلغاء التبديل ولا يُسلَّم أي حساب.</p>
+      </details>
+    </div>
+
+    <!-- JSON-LD — الزاوية 4: الأسئلة الشائعة -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+{ "@type": "Question", "name": "ما الفرق بين الربط الأساسي وطريقة التواصل؟", "acceptedAnswer": { "@type": "Answer", "text": "الربط الأساسي يوضح إن كان الحساب مرتبطًا بغوغل أو فيسبوك، أما طريقة التواصل فهي القناة التي يستخدمها المسؤول للتواصل معك أثناء متابعة العملية." } },
+        { "@type": "Question", "name": "ماذا يحدث بعد أن أرسل الرمز للطرف الثاني؟", "acceptedAnswer": { "@type": "Answer", "text": "يفتح الطرف الثاني صفحة دخول برمز من جهازه، يدخل الرمز، ثم يكمل بياناته. تتحول حالة العملية إلى تم الربط تمهيدًا لمراجعة المسؤول." } },
+        { "@type": "Question", "name": "من يستطيع رؤية بيانات عمليتي؟", "acceptedAnswer": { "@type": "Answer", "text": "في هذه النسخة التجريبية تُحفظ البيانات على متصفح كل جهاز على حدة، والمسؤول يراجعها من لوحته على نفس الجهاز." } },
+        { "@type": "Question", "name": "ماذا لو لم يستجب الطرف الثاني للرمز؟", "acceptedAnswer": { "@type": "Answer", "text": "يبقى الرمز صالحًا بحالة بانتظار الطرف الثاني دون حد زمني في هذه النسخة." } },
+        { "@type": "Question", "name": "ماذا لو اختلفت بيانات الطرفين بعد المطابقة؟", "acceptedAnswer": { "@type": "Answer", "text": "يستخدم المسؤول خيار نزاع من لوحته لإيقاف اعتماد التبديل مؤقتًا حتى تُحل المشكلة بمراجعة إضافية." } },
+        { "@type": "Question", "name": "هل يحصل الطرف الآخر على حسابي فور إدخال بياناتي والحصول على الرمز؟", "acceptedAnswer": { "@type": "Answer", "text": "لا. الحصول على الرمز أو حالة تم الربط لا يعني تسليم أي حساب تلقائيًا. لا يكتمل التبديل إلا بعد مراجعة المسؤول واعتماده، وإذا تبيّن أن بيانات أحد الطرفين غير صحيحة يُلغى التبديل." } }
+      ]
+    }
+    </script>
+  </section>
+
+  <section id="page-create" class="page">
+    <div class="shell">
+      <div class="card">
+        <div class="card-head"><div><h2>إنشاء عملية تبديل</h2><p>أنت الطرف الأول. أدخل بياناتك ثم أرسل الرمز إلى الطرف الذي تريد التبديل معه.</p></div><button class="back" onclick="navigate('home')">رجوع</button></div>
+        <form id="createForm" class="form" onsubmit="createSwap(event)">
+          <div class="step-title"><span class="step-badge">01</span><b>معلومات الحساب</b></div>
+          <div class="security-note">تنبيه: لا تدخل كلمة مرور حسابك في هذه الصفحة. استخدم معرّف الحساب أو اللقب فقط، ويجب أن يكون صحيحًا 100%.</div>
+          <div class="field full">
+            <label>الربط الأساسي للحساب</label>
+            <div class="toggle-group" id="cLinkToggle">
+              <button type="button" class="toggle-btn active" data-value="google"><span class="toggle-ic tg-google">G</span>غوغل</button>
+              <button type="button" class="toggle-btn" data-value="facebook"><span class="toggle-ic tg-facebook">F</span>فيسبوك</button>
+            </div>
+          </div>
+          <div class="field full hidden" id="cAccMethodToggleWrap">
+            <label>حسابات فيسبوك لا تملك دائمًا بريدًا — كيف تُعرّف حسابك؟</label>
+            <div class="toggle-group" id="cAccMethodToggle">
+              <button type="button" class="toggle-btn active" data-value="email"><span class="toggle-ic tg-google">@</span>بريد إلكتروني</button>
+              <button type="button" class="toggle-btn" data-value="phone"><span class="toggle-ic tg-whatsapp">#</span>رقم هاتف</button>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="field" id="cAccEmailField"><label for="cAccEmail">بريد الحساب الإلكتروني</label><div class="field-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><input id="cAccEmail" type="email" placeholder="account@gmail.com" required></div></div>
+            <div class="field hidden" id="cAccPhoneField"><label for="cAccPhone">رقم هاتف الحساب</label><div class="field-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.5 3h3l1.5 4.5-2 1.5a11 11 0 0 0 5.5 5.5l1.5-2 4.5 1.5v3a2 2 0 0 1-2 2C10.5 19 5 13.5 5 5.5a2 2 0 0 1 1.5-2.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><input id="cAccPhone" type="tel" placeholder="05xxxxxxxx"></div></div>
+            <div class="field"><label for="cNick">معرّف الحساب / اللقب</label><input id="cNick" placeholder="مثلاً: Kaka" required><small class="field-hint">يجب أن يكون صحيحًا 100%.</small></div>
+          </div>
+          <div class="upload-box" id="cUploadBox"><b>ارفع صورة الحساب</b><p>حتى 8 صور تثبت الملكية، أو اسحبها وأفلتها هنا. تُضغط محليًا قبل الحفظ في هذه النسخة.</p><input id="cImages" type="file" accept="image/*" multiple></div>
+          <div id="cPreview" class="previews"></div>
+          <div class="divider"></div>
+          <div class="step-title"><span class="step-badge">02</span><b>طريقة التواصل</b></div>
+          <div class="field full">
+            <label>كيف يتواصل معك المسؤول؟</label>
+            <div class="toggle-group" id="cContactToggle">
+              <button type="button" class="toggle-btn active" data-value="whatsapp"><span class="toggle-ic tg-whatsapp">W</span>واتساب</button>
+              <button type="button" class="toggle-btn" data-value="facebook"><span class="toggle-ic tg-facebook">F</span>فيسبوك</button>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="field full" id="cPhoneField"><label for="cContactPhone">رقم الهاتف على واتساب</label><div class="field-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.5 3h3l1.5 4.5-2 1.5a11 11 0 0 0 5.5 5.5l1.5-2 4.5 1.5v3a2 2 0 0 1-2 2C10.5 19 5 13.5 5 5.5a2 2 0 0 1 1.5-2.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><input id="cContactPhone" type="tel" placeholder="05xxxxxxxx" required></div></div>
+            <div class="field full hidden" id="cNameField"><label for="cContactName">اسمك على فيسبوك</label><input id="cContactName" placeholder="الاسم كما يظهر في فيسبوك"></div>
+          </div>
+          <div class="form-footer"><small>بعد الإرسال ستظهر شاشة الرمز.<br>الحصول على الرمز لا يعني تسليم الحساب فورًا — العملية تنتظر مراجعة المسؤول، وإذا تبيّن أن بياناتك غير صحيحة يتم إلغاء التبديل.<br>لا تنشر الرمز علنًا — شاركه مع الطرف الثاني فقط.</small><div class="actions"><button type="submit" class="btn primary">إنشاء العملية</button></div></div>
+        </form>
+        <div id="createResult" class="result hidden"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="page-join" class="page">
+    <div id="joinEntry" class="join-start">
+      <div class="card code-entry">
+        <h2>ادخل إلى عملية موجودة</h2>
+        <p>اكتب الرمز الذي أرسله لك الطرف الأول. إذا كان صحيحًا سيظهر نموذج بيانات الطرف الثاني.</p>
+        <div class="code-row"><input id="joinCode" maxlength="3" placeholder="مثال: 7K4" autocomplete="off" style="text-transform:uppercase"><button class="btn primary" onclick="lookupSwap()">فتح العملية</button></div>
+        <div id="joinFeedback" class="join-feedback">الرمز يفتح عملية التبديل نفسها، وليس حسابًا عامًا.</div>
+      </div>
+    </div>
+    <div id="joinFormWrap" class="shell hidden">
+      <div class="card">
+        <div class="card-head"><div><h2>أكمل بيانات الطرف الثاني</h2><p>الرمز: <strong id="joinCodeLabel"></strong></p></div><button class="back" onclick="resetJoin()">تغيير الرمز</button></div>
+        <form id="joinForm" class="form" onsubmit="submitJoin(event)">
+          <div class="step-title"><span class="step-badge">01</span><b>معلومات الحساب</b></div>
+          <div class="security-note">نفس القاعدة هنا: لا تكتب كلمة مرور الحساب. الربط الأساسي والبريد والصورة كافية للمراجعة.</div>
+          <div class="field full">
+            <label>الربط الأساسي للحساب</label>
+            <div class="toggle-group" id="jLinkToggle">
+              <button type="button" class="toggle-btn active" data-value="google"><span class="toggle-ic tg-google">G</span>غوغل</button>
+              <button type="button" class="toggle-btn" data-value="facebook"><span class="toggle-ic tg-facebook">F</span>فيسبوك</button>
+            </div>
+          </div>
+          <div class="field full hidden" id="jAccMethodToggleWrap">
+            <label>حسابات فيسبوك لا تملك دائمًا بريدًا — كيف تُعرّف حسابك؟</label>
+            <div class="toggle-group" id="jAccMethodToggle">
+              <button type="button" class="toggle-btn active" data-value="email"><span class="toggle-ic tg-google">@</span>بريد إلكتروني</button>
+              <button type="button" class="toggle-btn" data-value="phone"><span class="toggle-ic tg-whatsapp">#</span>رقم هاتف</button>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="field" id="jAccEmailField"><label for="jAccEmail">بريد الحساب الإلكتروني</label><div class="field-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><input id="jAccEmail" type="email" placeholder="account@gmail.com" required></div></div>
+            <div class="field hidden" id="jAccPhoneField"><label for="jAccPhone">رقم هاتف الحساب</label><div class="field-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.5 3h3l1.5 4.5-2 1.5a11 11 0 0 0 5.5 5.5l1.5-2 4.5 1.5v3a2 2 0 0 1-2 2C10.5 19 5 13.5 5 5.5a2 2 0 0 1 1.5-2.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><input id="jAccPhone" type="tel" placeholder="05xxxxxxxx"></div></div>
+            <div class="field"><label for="jNick">معرّف الحساب / اللقب</label><input id="jNick" placeholder="مثلاً: Kaka" required><small class="field-hint">يجب أن يكون صحيحًا 100%.</small></div>
+          </div>
+          <div class="upload-box" id="jUploadBox"><b>ارفع صورة الحساب</b><p>حتى 8 صور مع معاينة مباشرة، أو اسحبها وأفلتها هنا.</p><input id="jImages" type="file" accept="image/*" multiple></div>
+          <div id="jPreview" class="previews"></div>
+          <div class="divider"></div>
+          <div class="step-title"><span class="step-badge">02</span><b>طريقة التواصل</b></div>
+          <div class="field full">
+            <label>كيف يتواصل معك المسؤول؟</label>
+            <div class="toggle-group" id="jContactToggle">
+              <button type="button" class="toggle-btn active" data-value="whatsapp"><span class="toggle-ic tg-whatsapp">W</span>واتساب</button>
+              <button type="button" class="toggle-btn" data-value="facebook"><span class="toggle-ic tg-facebook">F</span>فيسبوك</button>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="field full" id="jPhoneField"><label for="jContactPhone">رقم الهاتف على واتساب</label><div class="field-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.5 3h3l1.5 4.5-2 1.5a11 11 0 0 0 5.5 5.5l1.5-2 4.5 1.5v3a2 2 0 0 1-2 2C10.5 19 5 13.5 5 5.5a2 2 0 0 1 1.5-2.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><input id="jContactPhone" type="tel" placeholder="05xxxxxxxx" required></div></div>
+            <div class="field full hidden" id="jNameField"><label for="jContactName">اسمك على فيسبوك</label><input id="jContactName" placeholder="الاسم كما يظهر في فيسبوك"></div>
+          </div>
+          <div class="form-footer"><small>بعد التأكيد تصبح العملية «تم الربط» وتظهر عند المسؤول للمراجعة — هذا لا يعني تسليم أي حساب فورًا، وأي بيانات غير صحيحة تؤدي لإلغاء التبديل.</small><div class="actions"><button type="submit" class="btn primary">تأكيد الانضمام</button></div></div>
+        </form>
+        <div id="joinResult" class="result hidden"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="page-admin" class="page">
+    <div class="admin-wrap">
+      <div id="adminLogin" class="card admin-login">
+        <div class="lock">SF</div>
+        <h2>لوحة المسؤول</h2>
+        <p>متابعة عمليات التبديل ومراجعتها. الدخول محمي بحساب مسؤول حقيقي في قاعدة البيانات — كلمة المرور لا تُخزَّن أبدًا داخل كود الموقع.</p>
+        <div class="field"><label for="adminEmail">البريد الإلكتروني</label><div class="field-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><input id="adminEmail" type="email" placeholder="admin@example.com" autocomplete="off"></div></div>
+        <div class="field"><label for="adminPass">كلمة المرور</label><div class="field-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><input id="adminPass" type="password" placeholder="••••••" autocomplete="off"></div></div>
+        <button class="btn primary" id="adminLoginBtn" onclick="loginAdmin()">دخول إلى العمليات</button>
+      </div>
+      <div id="adminBoard" class="admin-board">
+        <div class="admin-head"><div><h2>عمليات المجتمع</h2><p>ابحث، افتح تفاصيل عملية، وحدّث حالتها بعد المراجعة.</p></div><div class="actions"><button class="btn small" onclick="refreshOperations()">تحديث القائمة</button><button class="btn small" onclick="exportData()">تصدير نسخة</button><button class="btn small danger" onclick="logoutAdmin()">خروج</button></div></div>
+        <div class="stats"><div class="stat"><small>كل العمليات</small><b id="statAll">0</b></div><div class="stat"><small>بانتظار الطرف الثاني</small><b id="statWaiting">0</b></div><div class="stat"><small>تم الربط</small><b id="statMatched">0</b></div><div class="stat"><small>مكتملة</small><b id="statDone">0</b></div></div>
+        <div id="statusChart" class="status-chart"></div>
+        <div class="tools">
+          <div class="field-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m21 21-4.3-4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><input id="adminSearch" placeholder="بحث بالرمز، UID، البريد أو الاسم" oninput="renderAdmin()"></div>
+          <select id="adminFilter" onchange="renderAdmin()"><option value="all">كل الحالات</option><option value="waiting">بانتظار الطرف الثاني</option><option value="matched">تم الربط</option><option value="verified">تم التحقق</option><option value="done">مكتملة</option><option value="disputed">نزاع</option></select>
+        </div>
+        <div id="ops" class="ops"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="site-foot-inner">
+    <div class="foot-about">
+      <span class="brand-name">SWAP<b>FIRE</b></span>
+      <p>أداة مجتمعية لتنظيم عمليات تبديل الحسابات بين اللاعبين. راجع بيانات الطرف الآخر جيدًا قبل أي تبديل، ولا تشارك كلمة مرور حسابك مع أي شخص مهما كانت الحجة.</p>
+    </div>
+    <div class="foot-links">
+      <h4>روابط سريعة</h4>
+      <button onclick="navigate('home')">الرئيسية</button>
+      <button onclick="navigate('create')">إنشاء تبديل</button>
+      <button onclick="navigate('join')">دخول برمز</button>
+      <button onclick="navigate('admin')">لوحة المسؤول</button>
+    </div>
+  </div>
+</footer>
+
+<!-- JSON-LD — الزاوية 5: مسار تنقل الصفحة -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": "https://swapfire.example/#home" },
+    { "@type": "ListItem", "position": 2, "name": "إنشاء تبديل", "item": "https://swapfire.example/#create" },
+    { "@type": "ListItem", "position": 3, "name": "دخول برمز", "item": "https://swapfire.example/#join" },
+    { "@type": "ListItem", "position": 4, "name": "لوحة المسؤول", "item": "https://swapfire.example/#admin" }
+  ]
+}
+</script>
+
+<div id="modal" class="modal" onclick="closeModal(event)"><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><h3 id="modalTitle">تفاصيل العملية</h3><button class="modal-close" onclick="hideModal()" aria-label="إغلاق">×</button></div><div id="modalBody" class="modal-body"></div></div></div>
+<div id="toast" class="toast" role="status" aria-live="polite">
+  <span class="toast-ic" id="toastIcon"></span>
+  <span class="toast-text" id="toastText"></span>
+  <span class="toast-bar"></span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+'use strict';
+// ---------- اتصال Supabase ----------
+// نفس مشروع "سوق سونيك" — فقط المفتاح العلني (anon/publishable) يوضع هنا.
+// لا تضع مفتاح service_role هنا مطلقًا؛ أي زائر يفتح "عرض المصدر" سيراه.
+const SUPABASE_URL='https://bjlttyyaqxjxygtgxbjl.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_4CRp9w10zal3efJnopjVaw_OxTjMjK1';
+let sb=null;
+try{
+  if(window.supabase&&typeof window.supabase.createClient==='function'){
+    sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  }
+}catch(e){console.error('تعذر تهيئة Supabase — سيعمل الموقع محليًا فقط على هذا الجهاز',e)}
+
+const STORAGE_KEY='swapfire_pro_v1';
+const SWAP_TABLE='swap_operations';
+const CODE_ALPHABET='23456789ABCDEFGHJKMNPQRSTUVWXYZ'; // بلا 0/O و1/I لتفادي الالتباس
+const CODE_LENGTH=3;
+const PAGES=['home','create','join','admin'];
+let joinTarget=null;
+let toastTimer=null;
+let imageState={create:[],join:[]};
+const STATUS={waiting:'بانتظار الطرف الثاني',matched:'تم الربط',verified:'تم التحقق',done:'مكتملة',disputed:'نزاع'};
+const TOAST_ICONS={
+  success:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  error:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
+  info:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v.01M12 11v5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>'
+};
+
+// ---------- طبقة البيانات: ذاكرة محلية فورية + مزامنة مع Supabase ----------
+// opsCache هي المصدر المتزامن (synchronous) الذي تقرأ منه كل واجهة لوحة المسؤول.
+// تُحمَّل أول مرة من النسخة المحلية المخبأة، ثم تُستبدل بنسخة السحابة إن نجح الاتصال.
+let opsCache=[];
+function persistLocal(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(opsCache))}catch(e){}}
+function readAll(){return opsCache}
+function writeAll(v){opsCache=v;persistLocal()}
+function val(id){return (document.getElementById(id)?.value||'').trim()}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function uid(){return 'op_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
+function randomCode(){let s='';for(let i=0;i<CODE_LENGTH;i++)s+=CODE_ALPHABET[Math.floor(Math.random()*CODE_ALPHABET.length)];return s}
+
+function rowToOperation(r){return {id:r.id,code:r.code,status:r.status,participants:r.participants||[],created:r.created_at}}
+function operationToRow(it){return {id:it.id,code:it.code,status:it.status,participants:it.participants||[],created_at:it.created}}
+
+// Supabase يحدّ نتيجة select() الواحدة بـ1000 صف افتراضيًا. هذا يمر على الجدول
+// صفحة صفحة (range) حتى لا تختفي عمليات قديمة بصمت بعد تجاوز هذا العدد.
+async function fetchAllOperationRows(){
+  const PAGE=1000;let from=0,all=[];
+  while(true){
+    const {data,error}=await sb.from(SWAP_TABLE).select('*').order('created_at',{ascending:false}).range(from,from+PAGE-1);
+    if(error)throw error;
+    const rows=data||[];
+    all=all.concat(rows);
+    if(rows.length<PAGE)break;
+    from+=PAGE;
+  }
+  return all;
+}
+// تحميل كامل القائمة — يعمل فعليًا فقط بعد تسجيل دخول المسؤول الحقيقي، لأن
+// سياسات RLS لا تسمح لغير المسؤول برؤية الجدول كاملاً (فقط عبر الرمز الدقيق).
+async function loadOperations(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    const local=raw?JSON.parse(raw):[];
+    opsCache=Array.isArray(local)?local:[];
+  }catch(e){opsCache=[]}
+  if(!sb)return;
+  try{
+    const rows=await fetchAllOperationRows();
+    const cloudOps=rows.map(rowToOperation);
+    if(cloudOps.length===0&&opsCache.length>0){
+      // صفر عمليات من السحابة رغم وجود نسخة محلية = على الأرجح مشكلة صلاحيات
+      // (RLS) أو جلسة دخول منتهية، وليس حذفًا فعليًا. لا تُفرِغ النسخة المحلية.
+      console.error('Supabase رجّعت صفر عمليات رغم وجود نسخة محلية محفوظة — تم تجاهل هذا الرد حماية للبيانات وعرض آخر نسخة معروفة فقط.');
+      return;
+    }
+    opsCache=cloudOps;
+    persistLocal();
+  }catch(e){
+    console.warn('تعذر تحميل العمليات من السحابة، استخدام النسخة المحلية',e);
+  }
+}
+
+function notify(text,type){
+  type=type||'info';
+  clearTimeout(toastTimer);
+  const el=document.getElementById('toast');
+  document.getElementById('toastText').textContent=text;
+  document.getElementById('toastIcon').innerHTML=TOAST_ICONS[type]||TOAST_ICONS.info;
+  el.className='toast '+type;
+  void el.offsetWidth;
+  el.classList.add('show');
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2600);
+}
+
+function getPageFromHash(){const h=(location.hash||'').slice(1);return PAGES.includes(h)?h:null}
+function moveIndicator(page){
+  const btn=document.querySelector('.top-link[data-page="'+page+'"]');
+  const ind=document.getElementById('navIndicator');
+  if(!btn||!ind)return;
+  ind.style.width=btn.offsetWidth+'px';
+  ind.style.left=btn.offsetLeft+'px';
+}
+function navigate(page,fromHistory){
+  if(!document.getElementById('page-'+page))page='home';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.top-link').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+  moveIndicator(page);
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(!fromHistory)history.pushState({page},'','#'+page);
+  if(page==='admin'&&sessionStorage.getItem('sf_admin')==='1')openAdmin();
+}
+window.addEventListener('popstate',e=>navigate((e.state&&e.state.page)||getPageFromHash()||'home',true));
+window.addEventListener('resize',()=>{const cur=document.querySelector('.top-link.active');if(cur)moveIndicator(cur.dataset.page)});
+
+function copyText(text){if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(text).then(()=>notify('تم نسخ الرمز','success')).catch(()=>fallbackCopy(text))}else fallbackCopy(text)}
+function fallbackCopy(text){const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();try{document.execCommand('copy');notify('تم نسخ الرمز','success')}catch{notify(text)}t.remove()}
+function normalizeCode(el){el.value=el.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,CODE_LENGTH)}
+
+document.getElementById('joinCode').maxLength=CODE_LENGTH;
+document.getElementById('joinCode').addEventListener('input',e=>normalizeCode(e.target));
+
+function setupImagePicker(inputId, previewId, bucket){
+  const input=document.getElementById(inputId);
+  const box=input.closest('.upload-box');
+  async function handleFiles(fileList){
+    const files=[...fileList].slice(0,8);
+    imageState[bucket]=[];
+    for(const f of files){if(!f.type.startsWith('image/'))continue; if(f.size>12*1024*1024){notify(`الصورة ${f.name} كبيرة جدًا`,'error');continue} const url=await compressImage(f);imageState[bucket].push({name:f.name,url})}
+    renderPreviews(previewId,bucket);
+    if(files.length>8)notify('تم اختيار أول 8 صور فقط');
+  }
+  input.addEventListener('change',()=>handleFiles(input.files));
+  if(box){
+    ['dragenter','dragover'].forEach(ev=>box.addEventListener(ev,e=>{e.preventDefault();box.classList.add('dragover')}));
+    ['dragleave','drop'].forEach(ev=>box.addEventListener(ev,e=>{e.preventDefault();box.classList.remove('dragover')}));
+    box.addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files.length)handleFiles(e.dataTransfer.files)});
+  }
+}
+function compressImage(file,max=1200){return new Promise((resolve,reject)=>{const r=new FileReader();r.onerror=reject;r.onload=()=>{const img=new Image();img.onerror=reject;img.onload=()=>{let w=img.width,h=img.height;if(w>max||h>max){const k=Math.min(max/w,max/h);w=Math.max(1,Math.round(w*k));h=Math.max(1,Math.round(h*k))}const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.drawImage(img,0,0,w,h);resolve(c.toDataURL('image/jpeg',.82))};img.src=r.result};r.readAsDataURL(file)})}
+function renderPreviews(previewId,bucket){const out=document.getElementById(previewId);out.innerHTML='';imageState[bucket].forEach((im,i)=>{const wrap=document.createElement('div');wrap.className='preview-img';wrap.innerHTML=`<img src="${im.url}" alt=""><button type="button" aria-label="إزالة">×</button>`;wrap.querySelector('button').onclick=()=>{imageState[bucket].splice(i,1);renderPreviews(previewId,bucket)};out.appendChild(wrap)})}
+setupImagePicker('cImages','cPreview','create');
+setupImagePicker('jImages','jPreview','join');
+
+function toggleValue(groupId){return document.querySelector('#'+groupId+' .toggle-btn.active')?.dataset.value||''}
+function setupToggle(groupId,onChange){const group=document.getElementById(groupId);if(!group)return;group.querySelectorAll('.toggle-btn').forEach(btn=>{btn.addEventListener('click',()=>{group.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(onChange)onChange(btn.dataset.value)})})}
+function updateAccIdentFields(prefix){const linkType=toggleValue(prefix+'LinkToggle')||'google';const isFb=linkType==='facebook';document.getElementById(prefix+'AccMethodToggleWrap').classList.toggle('hidden',!isFb);const method=isFb?(toggleValue(prefix+'AccMethodToggle')||'email'):'email';const isEmail=method!=='phone';document.getElementById(prefix+'AccEmailField').classList.toggle('hidden',!isEmail);document.getElementById(prefix+'AccPhoneField').classList.toggle('hidden',isEmail);document.getElementById(prefix+'AccEmail').required=isEmail;document.getElementById(prefix+'AccPhone').required=!isEmail}
+function setupContactToggle(prefix){setupToggle(prefix+'ContactToggle',v=>{const isWa=v==='whatsapp';const phoneField=document.getElementById(prefix+'PhoneField');const nameField=document.getElementById(prefix+'NameField');phoneField.classList.toggle('hidden',!isWa);nameField.classList.toggle('hidden',isWa);document.getElementById(prefix+'ContactPhone').required=isWa;document.getElementById(prefix+'ContactName').required=!isWa})}
+setupToggle('cLinkToggle',()=>updateAccIdentFields('c'));
+setupToggle('jLinkToggle',()=>updateAccIdentFields('j'));
+setupToggle('cAccMethodToggle',()=>updateAccIdentFields('c'));
+setupToggle('jAccMethodToggle',()=>updateAccIdentFields('j'));
+setupContactToggle('c');
+setupContactToggle('j');
+
+function attachShake(form){
+  form.querySelectorAll('input[required]').forEach(el=>{
+    el.addEventListener('invalid',()=>{
+      const field=el.closest('.field');
+      if(!field)return;
+      field.classList.remove('shake');void field.offsetWidth;field.classList.add('shake');
+    });
+  });
+}
+attachShake(document.getElementById('createForm'));
+attachShake(document.getElementById('joinForm'));
+
+function buildParticipant(prefix,role,images){const contactType=toggleValue(prefix+'ContactToggle')||'whatsapp';const linkType=toggleValue(prefix+'LinkToggle')||'google';const accMethod=linkType==='facebook'?(toggleValue(prefix+'AccMethodToggle')||'email'):'email';return {role,linkType,accMethod,accountEmail:accMethod==='email'?val(prefix+'AccEmail'):'',accountPhone:accMethod==='phone'?val(prefix+'AccPhone'):'',nick:val(prefix+'Nick'),contactType,contactPhone:contactType==='whatsapp'?val(prefix+'ContactPhone'):'',contactName:contactType==='facebook'?val(prefix+'ContactName'):'',images:[...images]}}
+const CHECK_ICON='<div class="result-check"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#2E7D4F" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
+async function createSwap(e){
+  e.preventDefault();
+  const submitBtn=e.target.querySelector('button[type=submit]');
+  if(submitBtn)submitBtn.disabled=true;
+  const p=buildParticipant('c','الطرف الأول',imageState.create);
+  const item={id:uid(),code:null,created:new Date().toISOString(),status:'waiting',participants:[p]};
+  let savedToCloud=false;
+  if(sb){
+    for(let attempt=0;attempt<20&&!item.code;attempt++){
+      const candidate=randomCode();
+      const {error}=await sb.from(SWAP_TABLE).insert(operationToRow({...item,code:candidate}));
+      if(!error){item.code=candidate;savedToCloud=true}
+      else if(error.code!=='23505'){console.error('Supabase insert failed:',error);break}
+    }
+  }
+  if(!item.code){
+    item.code=randomCode();
+    while(opsCache.some(x=>x.code===item.code))item.code=randomCode();
+  }
+  opsCache.unshift(item);persistLocal();
+  if(submitBtn)submitBtn.disabled=false;
+  e.target.classList.add('hidden');
+  const result=document.getElementById('createResult');
+  result.classList.remove('hidden');
+  const syncNote=savedToCloud?'':'<p style="color:var(--bad)"><b>تنبيه:</b> تعذر حفظ العملية على السحابة الآن — الرمز يعمل على هذا الجهاز فقط حتى تعود المزامنة. لا تشارك الرمز مع الطرف الثاني قبل ذلك.</p>';
+  result.innerHTML=`${CHECK_ICON}<div>تم إنشاء عملية التبديل</div><div class="result-code"><small>رمزك الخاص</small><strong>${item.code}</strong></div><p>أرسل هذا الرمز إلى الطرف الثاني فقط.</p>${syncNote}<p><b>مهم:</b> إنشاء العملية والحصول على الرمز لا يعني تسليم أي حساب فورًا. لا يكتمل التبديل إلا بعد مراجعة المسؤول لبيانات الطرفين، وإذا تبيّن أن بيانات أي طرف غير صحيحة يتم إلغاء العملية.</p><div class="result-actions"><button class="btn primary" onclick="copyText('${item.code}')">نسخ الرمز</button><button class="btn" onclick="viewOperation('${item.id}')">معاينة العملية</button><button class="btn" onclick="navigate('home')">العودة للرئيسية</button></div>`;
+  notify(savedToCloud?'تم إنشاء العملية بنجاح':'تم الإنشاء محليًا فقط — تحقق من الاتصال',savedToCloud?'success':'error');
+  imageState.create=[];document.getElementById('cPreview').innerHTML=''
+}
+
+async function lookupSwap(){
+  const raw=val('joinCode').toUpperCase();
+  const feedback=document.getElementById('joinFeedback');
+  if(!raw){feedback.className='join-feedback bad';feedback.textContent='اكتب الرمز أولاً.';return}
+  let item=null;
+  if(sb){
+    try{
+      const {data,error}=await sb.rpc('get_operation_by_code',{p_code:raw});
+      if(error)throw error;
+      if(data&&data.length)item=rowToOperation(data[0]);
+    }catch(e){console.warn('تعذر البحث عن الرمز عبر السحابة، سيتم البحث محليًا',e)}
+  }
+  if(!item)item=opsCache.find(x=>x.code===raw)||null;
+  if(!item){feedback.className='join-feedback bad';feedback.innerHTML='<b>الرمز غير موجود.</b><br>تأكد من كتابة الرمز كما أُرسل لك.';notify('الرمز غير موجود','error');return}
+  if(item.participants.length>=2){feedback.className='join-feedback bad';feedback.innerHTML='<b>هذه العملية اكتملت بالطرفين.</b><br>لا يمكن إضافة طرف ثالث.';return}
+  joinTarget=item.code;
+  document.getElementById('joinEntry').classList.add('hidden');
+  document.getElementById('joinFormWrap').classList.remove('hidden');
+  document.getElementById('joinCodeLabel').textContent=item.code;
+  window.scrollTo({top:0,behavior:'smooth'});
+  notify('تم العثور على العملية','success')
+}
+function resetJoin(){joinTarget=null;document.getElementById('joinEntry').classList.remove('hidden');document.getElementById('joinFormWrap').classList.add('hidden');document.getElementById('joinFeedback').className='join-feedback';document.getElementById('joinFeedback').textContent='الرمز يفتح عملية التبديل نفسها، وليس حسابًا عامًا.';document.getElementById('joinCode').value='';document.getElementById('joinForm').reset();document.getElementById('joinResult').classList.add('hidden');document.getElementById('joinForm').classList.remove('hidden');imageState.join=[];document.getElementById('jPreview').innerHTML=''}
+async function submitJoin(e){
+  e.preventDefault();
+  if(!joinTarget){notify('أدخل الرمز أولاً','error');return}
+  const submitBtn=e.target.querySelector('button[type=submit]');
+  if(submitBtn)submitBtn.disabled=true;
+  const participant=buildParticipant('j','الطرف الثاني',imageState.join);
+  let item=null,savedToCloud=false;
+  if(sb){
+    try{
+      const {data,error}=await sb.rpc('join_swap_operation',{p_code:joinTarget,p_participant:participant});
+      if(error)throw error;
+      if(data&&data.length){item=rowToOperation(data[0]);savedToCloud=true}
+    }catch(err){
+      console.error('تعذر الانضمام عبر السحابة',err);
+      const msg=(err&&err.message==='operation_not_found_or_full')?'تعذر العثور على العملية أو أنها اكتملت بالفعل — أعد فتحها بالرمز من جديد.':'تعذر الانضمام — تحقق من الاتصال بالإنترنت.';
+      notify(msg,'error');
+      if(submitBtn)submitBtn.disabled=false;
+      return;
+    }
+  }
+  if(!item){
+    const local=opsCache.find(x=>x.code===joinTarget);
+    if(!local||local.participants.length>=2){notify('تعذر العثور على العملية','error');if(submitBtn)submitBtn.disabled=false;return}
+    local.participants.push(participant);
+    local.status='matched';
+    item=local;
+  }
+  const idx=opsCache.findIndex(x=>x.id===item.id);
+  if(idx>=0)opsCache[idx]=item;else opsCache.unshift(item);
+  persistLocal();
+  if(submitBtn)submitBtn.disabled=false;
+  e.target.classList.add('hidden');
+  const result=document.getElementById('joinResult');
+  result.classList.remove('hidden');
+  const syncNote=savedToCloud?'':'<p style="color:var(--bad)"><b>تنبيه:</b> تعذرت المزامنة مع السحابة — تم الحفظ على هذا الجهاز فقط.</p>';
+  result.innerHTML=`${CHECK_ICON}<div>تم ربط الطرفين</div><div class="result-code"><small>العملية</small><strong>${item.code}</strong></div><p>العملية الآن بحالة «تم الربط».</p>${syncNote}<p><b>مهم:</b> هذا لا يعني تسليم أي حساب فورًا. المسؤول سيراجع بيانات الطرفين قبل اعتماد التبديل، وإذا تبيّن أن بيانات أي طرف غير صحيحة يتم إلغاء العملية.</p><div class="result-actions"><button class="btn primary" onclick="copyText('${item.code}')">نسخ الرمز</button><button class="btn" onclick="navigate('home')">تم</button></div>`;
+  notify(savedToCloud?'تم الانضمام إلى العملية':'تم الحفظ محليًا فقط',savedToCloud?'success':'error');
+  imageState.join=[];document.getElementById('jPreview').innerHTML=''
+}
+
+async function loginAdmin(){
+  if(!sb){notify('الاتصال بقاعدة البيانات غير متاح الآن — لا يمكن تسجيل الدخول','error');return}
+  const email=val('adminEmail'),pass=val('adminPass');
+  if(!email||!pass){notify('أدخل البريد وكلمة المرور','error');return}
+  const btn=document.getElementById('adminLoginBtn');
+  if(btn){btn.disabled=true;btn.textContent='...جارٍ الدخول'}
+  try{
+    const {error}=await sb.auth.signInWithPassword({email,password:pass});
+    if(error){notify('بيانات الدخول غير صحيحة','error');return}
+    sessionStorage.setItem('sf_admin','1');
+    await openAdmin();
+    notify('تم فتح لوحة المسؤول','success')
+  }catch(e){
+    console.error('admin login failed',e);
+    notify('تعذر الاتصال بالخادم','error')
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='دخول إلى العمليات'}
+  }
+}
+async function logoutAdmin(){
+  sessionStorage.removeItem('sf_admin');
+  if(sb){try{await sb.auth.signOut()}catch(e){console.error('signOut failed',e)}}
+  document.getElementById('adminBoard').classList.remove('open');
+  document.getElementById('adminLogin').style.display='block';
+  document.getElementById('adminPass').value='';
+  document.getElementById('adminEmail').value='';
+  notify('تم تسجيل الخروج')
+}
+async function openAdmin(){
+  document.getElementById('adminLogin').style.display='none';
+  document.getElementById('adminBoard').classList.add('open');
+  await loadOperations();
+  renderAdmin()
+}
+async function refreshOperations(){await loadOperations();renderAdmin();notify('تم تحديث القائمة','success')}
+async function restoreAdminSession(){
+  if(!sb)return;
+  try{
+    const {data}=await sb.auth.getSession();
+    if(data&&data.session){
+      sessionStorage.setItem('sf_admin','1');
+      if(getPageFromHash()==='admin')await openAdmin();
+    }
+  }catch(e){console.error('session restore failed',e)}
+}
+
+function buildStatusChart(counts){
+  const total=Object.values(counts).reduce((a,b)=>a+b,0);
+  const segs=[
+    {k:'waiting',label:'بانتظار الطرف الثاني',color:'#D6C39C'},
+    {k:'matched',label:'تم الربط',color:'#0E7684'},
+    {k:'verified',label:'تم التحقق',color:'#B98A34'},
+    {k:'done',label:'مكتملة',color:'#2E7D4F'},
+    {k:'disputed',label:'نزاع',color:'#A83A3A'}
+  ];
+  const r=38,c=2*Math.PI*r;
+  let offset=0;
+  const arcs=total?segs.map(s=>{
+    const v=counts[s.k]||0;
+    const frac=v/total;
+    const len=frac*c;
+    const circle=`<circle cx="50" cy="50" r="${r}" fill="none" stroke="${s.color}" stroke-width="14" stroke-dasharray="${len} ${c-len}" stroke-dashoffset="${-offset}"/>`;
+    offset+=len;
+    return circle;
+  }).join(''):'<circle cx="50" cy="50" r="38" fill="none" stroke="#E6DAC0" stroke-width="14"/>';
+  const legend=segs.map(s=>`<span><i style="background:${s.color}"></i>${s.label}: ${counts[s.k]||0}</span>`).join('');
+  return `<svg width="96" height="96" viewBox="0 0 100 100" style="transform:rotate(-90deg)">${arcs}</svg><div class="status-legend">${legend}</div>`;
+}
+
+function renderAdmin(){
+  if(sessionStorage.getItem('sf_admin')!=='1')return;
+  const all=readAll();
+  const counts={waiting:0,matched:0,verified:0,done:0,disputed:0};
+  all.forEach(x=>{if(counts[x.status]!==undefined)counts[x.status]++});
+  document.getElementById('statAll').textContent=all.length;
+  document.getElementById('statWaiting').textContent=counts.waiting;
+  document.getElementById('statMatched').textContent=counts.matched;
+  document.getElementById('statDone').textContent=counts.done;
+  document.getElementById('statusChart').innerHTML=buildStatusChart(counts);
+  const q=val('adminSearch').toLowerCase();
+  const f=val('adminFilter');
+  const list=all.filter(x=>(f==='all'||x.status===f)&&(!q||JSON.stringify(x).toLowerCase().includes(q)));
+  const ops=document.getElementById('ops');
+  if(!list.length){ops.innerHTML='<div class="empty"><svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="19" cy="17" r="1.4" fill="currentColor"/></svg><p>لا توجد عمليات مطابقة للبحث أو الفلتر الحالي.</p><small>جرّب مسح مربع البحث أو اختر «كل الحالات».</small></div>';return}
+  ops.innerHTML=list.map(renderOperationCard).join('')
+}
+function badgeClass(s){return s==='done'||s==='verified'?'green':s==='disputed'?'red':s==='matched'?'amber':''}
+function renderOperationCard(x){const people=x.participants.map((p,i)=>{const imgs=(p.images||[]).map(im=>`<img src="${im.url}" alt="صورة إثبات">`).join('');const accLine=p.accMethod==='phone'?'هاتف الحساب: '+esc(p.accountPhone):'بريد الحساب: '+esc(p.accountEmail);return `<div class="person"><div class="person-top"><h4>الطرف ${i+1}</h4><span style="font-size:8px;color:var(--ink-mute)">${p.linkType==='facebook'?'فيسبوك':'غوغل'}</span></div><p>${accLine}</p><p>الاسم: ${esc(p.nick)}</p><p>التواصل: ${p.contactType==='facebook'?'فيسبوك — '+esc(p.contactName):'واتساب — '+esc(p.contactPhone)}</p><div class="thumbs">${imgs||'<span style="font-size:8px;color:var(--ink-mute)">بدون صور</span>'}</div></div>`}).join('');return `<article class="op"><div class="op-head"><div><div class="op-code">${x.code}</div><div class="op-date">${new Date(x.created).toLocaleString('ar-DZ')}</div></div><span class="badge ${badgeClass(x.status)}">${STATUS[x.status]||x.status}</span></div><div class="op-body"><div class="track">${track(x.status)}</div><div class="people">${people}</div><div class="op-actions"><button class="btn small" onclick="viewOperation('${x.id}')">فتح التفاصيل</button><button class="btn small" onclick="setStatus('${x.id}','verified')">تم التحقق</button><button class="btn small" onclick="setStatus('${x.id}','done')">إكمال</button><button class="btn small" onclick="setStatus('${x.id}','disputed')">نزاع</button><button class="btn small danger" onclick="deleteOperation('${x.id}')">حذف</button></div></div></article>`}
+function track(status){const steps=[['waiting','استقبال'],['matched','الطرفان'],['verified','تحقق'],['done','إكمال']];const current=steps.findIndex(s=>s[0]===status);return steps.map((s,i)=>`<div class="track-step ${status==='disputed'?'':i<current?'done':i===current?'on':''}"><small>0${i+1}</small><b>${s[1]}</b></div>`).join('')}
+async function setStatus(id,status){
+  const item=opsCache.find(x=>x.id===id);if(!item)return;
+  item.status=status;persistLocal();renderAdmin();
+  notify(`تم تغيير الحالة إلى: ${STATUS[status]}`,'success');
+  if(sb){
+    const {error}=await sb.from(SWAP_TABLE).update({status}).eq('id',id);
+    if(error){console.error('Supabase status update failed:',error);notify('تعذرت مزامنة الحالة مع السحابة','error')}
+  }
+}
+async function deleteOperation(id){
+  if(!confirm('سيتم حذف العملية نهائيًا من كل الأجهزة. هل تريد المتابعة؟'))return;
+  opsCache=opsCache.filter(x=>x.id!==id);persistLocal();renderAdmin();
+  notify('تم حذف العملية','success');
+  if(sb){
+    const {error}=await sb.from(SWAP_TABLE).delete().eq('id',id);
+    if(error){console.error('Supabase delete failed:',error);notify('تعذر حذف العملية من السحابة','error')}
+  }
+}
+function viewOperation(id){const x=readAll().find(z=>z.id===id);if(!x)return;document.getElementById('modalTitle').textContent=`تفاصيل ${x.code}`;document.getElementById('modalBody').innerHTML=`<div class="detail-grid">${x.participants.map((p,i)=>`<div class="detail-box"><h4>الطرف ${i+1}</h4><p><b>الربط الأساسي:</b> ${p.linkType==='facebook'?'فيسبوك':'غوغل'}</p><p><b>${p.accMethod==='phone'?'هاتف الحساب':'بريد الحساب'}:</b> ${esc(p.accMethod==='phone'?p.accountPhone:p.accountEmail)}</p><p><b>معرّف الحساب / اللقب:</b> ${esc(p.nick)}</p><p><b>التواصل:</b> ${p.contactType==='facebook'?'فيسبوك':'واتساب'} — ${esc(p.contactType==='facebook'?p.contactName:p.contactPhone)}</p><div class="detail-images">${(p.images||[]).map(im=>`<img src="${im.url}" alt="صورة الحساب">`).join('')||'<span style="font-size:9px;color:var(--ink-mute)">لا توجد صور</span>'}</div></div>`).join('')}</div><div style="margin-top:10px;border:1px solid var(--line);background:var(--card-2);border-radius:14px;padding:12px"><p style="margin:0;color:var(--ink-mute);font-size:9px">الحالة الحالية: <b style="color:var(--ink)">${STATUS[x.status]||x.status}</b></p><p style="margin:4px 0 0;color:var(--ink-mute);font-size:8px">تاريخ الإنشاء: ${new Date(x.created).toLocaleString('ar-DZ')}</p></div>`;document.getElementById('modal').classList.add('open');document.body.style.overflow='hidden';const closeBtn=document.querySelector('#modal .modal-close');if(closeBtn)closeBtn.focus()}
+function closeModal(e){if(e.target.id==='modal')hideModal()}
+function hideModal(){document.getElementById('modal').classList.remove('open');document.body.style.overflow=''}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('modal').classList.contains('open'))hideModal()});
+function exportData(){const data=JSON.stringify(readAll(),null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`swapfire-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);notify('تم تصدير نسخة من العمليات','success')}
+
+document.getElementById('adminPass').addEventListener('keydown',e=>{if(e.key==='Enter')loginAdmin()});
+document.getElementById('adminEmail').addEventListener('keydown',e=>{if(e.key==='Enter')loginAdmin()});
+window.addEventListener('scroll',()=>{document.getElementById('topbar').classList.toggle('scrolled',window.scrollY>10)},{passive:true});
+
+navigate(getPageFromHash()||'home',true);
+restoreAdminSession();
+</script>
+</body>
+</html>
