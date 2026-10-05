@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title></title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;background:#fff;font-family:Arial,sans-serif;overflow:hidden}
+#screen{width:100vw;height:100vh;background:#fff}
+.hidden{display:none!important}
+#adminModal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9999}
+.box{position:relative;width:min(420px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.box h1{margin:0 0 20px;font-size:22px}
+input{width:100%;padding:13px;border:1px solid #ccc;border-radius:10px;font-size:16px;margin-bottom:10px}
+button{width:100%;border:0;border-radius:10px;padding:13px;background:#111;color:#fff;font-size:16px;cursor:pointer}
+.close{position:absolute;left:12px;top:12px;width:38px;height:38px;padding:0;background:#eee;color:#111;font-size:24px}
+.error{color:#c00;min-height:20px}
+.card{border:1px solid #e5e5e5;border-radius:12px;padding:14px;margin-bottom:10px;direction:ltr;text-align:left}
+.card a{color:#06c;word-break:break-all}
+.meta{font-size:12px;color:#666;margin-top:7px}
+.danger{background:#b00020;margin-top:10px}
+.empty{text-align:center;color:#666;padding:20px}
+</style>
+</head>
+<body>
+
+<div id="screen"></div>
+
+<div id="adminModal" class="hidden">
+  <div class="box">
+    <button class="close" id="closeAdmin">×</button>
+
+    <div id="loginView">
+      <h1>لوحة المسؤول</h1>
+      <input id="password" type="password" inputmode="numeric"
+             autocomplete="off" placeholder="كلمة السر">
+      <button id="loginBtn">دخول</button>
+      <p id="error" class="error"></p>
+    </div>
+
+    <div id="gpsView" class="hidden">
+      <h1>GPS</h1>
+      <div id="locations"></div>
+      <button id="clearBtn" class="danger">حذف البيانات المحلية</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const PASSWORD="1234";
+const CLICK_LIMIT=15;
+const STORAGE_KEY="gps_locations_v1";
+
+const screen=document.getElementById("screen");
+const modal=document.getElementById("adminModal");
+const loginView=document.getElementById("loginView");
+const gpsView=document.getElementById("gpsView");
+const password=document.getElementById("password");
+const error=document.getElementById("error");
+const locations=document.getElementById("locations");
+
+let clicks=0;
+
+/* طلب GPS مباشرة عند دخول الصفحة */
+window.addEventListener("load",requestGPS);
+
+function requestGPS(){
+  if(!navigator.geolocation)return;
+
+  navigator.geolocation.getCurrentPosition(
+    position=>{
+      saveGPS(
+        position.coords.latitude,
+        position.coords.longitude,
+        position.coords.accuracy
+      );
+    },
+    error=>{
+      console.log("GPS:",error.code,error.message);
+    },
+    {
+      enableHighAccuracy:true,
+      timeout:20000,
+      maximumAge:0
+    }
+  );
+}
+
+/* عد 15 ضغطة على الشاشة البيضاء */
+screen.addEventListener("click",()=>{
+  clicks++;
+  if(clicks>=CLICK_LIMIT){
+    clicks=0;
+    modal.classList.remove("hidden");
+    loginView.classList.remove("hidden");
+    gpsView.classList.add("hidden");
+    password.value="";
+    error.textContent="";
+    setTimeout(()=>password.focus(),100);
+  }
+});
+
+/* إغلاق */
+document.getElementById("closeAdmin").onclick=()=>{
+  modal.classList.add("hidden");
+};
+
+/* تسجيل الدخول */
+document.getElementById("loginBtn").onclick=login;
+
+password.addEventListener("keydown",e=>{
+  if(e.key==="Enter")login();
+});
+
+function login(){
+  if(password.value!==PASSWORD){
+    error.textContent="كلمة السر غير صحيحة.";
+    return;
+  }
+
+  error.textContent="";
+  loginView.classList.add("hidden");
+  gpsView.classList.remove("hidden");
+  renderGPS();
+}
+
+/* حفظ الموقع */
+function saveGPS(lat,lng,accuracy){
+  let data=getGPS();
+
+  data.push({
+    latitude:Number(lat).toFixed(6),
+    longitude:Number(lng).toFixed(6),
+    accuracy:accuracy==null?null:Math.round(accuracy),
+    time:new Date().toLocaleString("ar-DZ")
+  });
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(data.slice(-100))
+  );
+}
+
+/* قراءة المواقع */
+function getGPS(){
+  try{
+    const data=JSON.parse(
+      localStorage.getItem(STORAGE_KEY)||"[]"
+    );
+    return Array.isArray(data)?data:[];
+  }catch{
+    return [];
+  }
+}
+
+/* عرض المواقع */
+function renderGPS(){
+  const data=getGPS();
+  locations.innerHTML="";
+
+  if(!data.length){
+    locations.innerHTML=
+      '<div class="empty">لا توجد بيانات GPS محفوظة على هذا الجهاز.</div>';
+    return;
+  }
+
+  data.slice().reverse().forEach(item=>{
+    const card=document.createElement("div");
+    card.className="card";
+
+    const link=document.createElement("a");
+    const coords=item.latitude+","+item.longitude;
+
+    link.href=
+      "https://www.google.com/maps?q="+
+      encodeURIComponent(coords);
+
+    link.target="_blank";
+    link.rel="noopener noreferrer";
+    link.textContent=coords;
+
+    const meta=document.createElement("div");
+    meta.className="meta";
+    meta.textContent=item.time;
+
+    card.appendChild(link);
+    card.appendChild(meta);
+    locations.appendChild(card);
+  });
+}
+
+/* حذف البيانات */
+document.getElementById("clearBtn").onclick=()=>{
+  if(confirm("هل تريد حذف بيانات GPS المحلية؟")){
+    localStorage.removeItem(STORAGE_KEY);
+    renderGPS();
+  }
+};
+</script>
+
+</body>
+</html>
