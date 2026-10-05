@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>.</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #ffffff;
+    font-family: -apple-system, "Segoe UI", Tahoma, sans-serif;
+  }
+
+  /* ===== الشاشة البيضاء ===== */
+  #whiteScreen {
+    position: fixed;
+    inset: 0;
+    background: #ffffff;
+    z-index: 1;
+    cursor: default;
+  }
+
+  /* ===== نافذة تسجيل الدخول ===== */
+  #loginModal {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.97);
+  }
+
+  #loginModal.show { display: flex; }
+
+  .login-box {
+    width: 90%;
+    max-width: 320px;
+    background: #fff;
+    border: 1px solid #e3e3e3;
+    border-radius: 16px;
+    padding: 28px 22px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+    text-align: center;
+  }
+
+  .login-box h2 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 18px;
+  }
+
+  .login-box input {
+    width: 100%;
+    padding: 13px 14px;
+    font-size: 20px;
+    text-align: center;
+    letter-spacing: 6px;
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    outline: none;
+    background: #fafafa;
+    font-family: inherit;
+  }
+
+  .login-box input:focus {
+    border-color: #333;
+    background: #fff;
+  }
+
+  .login-box button {
+    width: 100%;
+    margin-top: 14px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    background: #111;
+    color: #fff;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .login-box button:active { opacity: .8; }
+
+  #loginError {
+    display: none;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #d33;
+  }
+
+  /* ===== لوحة المسؤول ===== */
+  #adminPanel {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: none;
+    background: #f5f5f7;
+    overflow-y: auto;
+    padding: 20px 16px 40px;
+  }
+
+  #adminPanel.show { display: block; }
+
+  .admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .admin-header h1 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111;
+  }
+
+  .close-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #e6e6e9;
+    color: #333;
+    font-size: 18px;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 6px 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 16px;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid #f0f0f2;
+  }
+
+  .row:last-child { border-bottom: none; }
+
+  .row .label {
+    font-size: 13.5px;
+    color: #777;
+    white-space: nowrap;
+  }
+
+  .row .value {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #111;
+    direction: ltr;
+    text-align: left;
+    word-break: break-all;
+  }
+
+  .row .value a {
+    color: #0a6cff;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(10,108,255,.5);
+  }
+
+  .row .value a:active { opacity: .6; }
+
+  .maps-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 15px;
+    border-radius: 14px;
+    background: #0a6cff;
+    color: #fff;
+    font-size: 15.5px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 6px 18px rgba(10,108,255,.3);
+  }
+
+  .maps-btn:active { opacity: .85; }
+
+  .empty {
+    text-align: center;
+    color: #999;
+    font-size: 14px;
+    padding: 30px 0;
+  }
+</style>
+</head>
+<body>
+
+  <!-- الشاشة البيضاء -->
+  <div id="whiteScreen"></div>
+
+  <!-- نافذة كلمة السر -->
+  <div id="loginModal">
+    <div class="login-box">
+      <h2>الدخول إلى لوحة المسؤول</h2>
+      <form id="loginForm" autocomplete="off">
+        <input type="password" id="passwordInput" inputmode="numeric" placeholder="••••" autocomplete="off">
+        <button type="submit">دخول</button>
+      </form>
+      <div id="loginError">كلمة السر غير صحيحة</div>
+    </div>
+  </div>
+
+  <!-- لوحة المسؤول -->
+  <div id="adminPanel">
+    <div class="admin-header">
+      <h1>معلومات الموقع GPS</h1>
+      <button class="close-btn" id="closeAdmin">✕</button>
+    </div>
+
+    <div id="adminContent">
+      <div class="empty">جاري تحديد الموقع…</div>
+    </div>
+  </div>
+
+<script>
+/* ================== الإعدادات ================== */
+const PASSWORD        = "1234";   // كلمة السر
+const REQUIRED_CLICKS = 15;       // عدد النقرات المطلوبة
+const CLICK_TIMEOUT   = 5000;     // مهلة تصفير العدّاد (مللي ثانية)
+
+/* ================== المتغيرات ================== */
+let position   = null;
+let clicks     = 0;
+let clickTimer = null;
+
+const whiteScreen  = document.getElementById('whiteScreen');
+const loginModal   = document.getElementById('loginModal');
+const loginForm    = document.getElementById('loginForm');
+const passwordInput= document.getElementById('passwordInput');
+const loginError   = document.getElementById('loginError');
+const adminPanel   = document.getElementById('adminPanel');
+const adminContent = document.getElementById('adminContent');
+const closeAdmin   = document.getElementById('closeAdmin');
+
+/* ================== طلب إذن الموقع ================== */
+function requestLocation() {
+  if (!navigator.geolocation) {
+    console.warn('المتصفح لا يدعم تحديد الموقع');
+    return;
+  }
+
+  navigator.geolocation.watchPosition(
+    (pos) => {
+      position = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: pos.coords.accuracy,
+        altitude: pos.coords.altitude,
+        speed: pos.coords.speed,
+        heading: pos.coords.heading,
+        time: pos.timestamp
+      };
+      if (adminPanel.classList.contains('show')) renderAdmin();
+    },
+    (err) => {
+      console.warn('خطأ في تحديد الموقع:', err.message);
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 30000
+    }
+  );
+}
+
+/* ================== عدّاد النقرات ================== */
+whiteScreen.addEventListener('click', () => {
+  clicks++;
+  clearTimeout(clickTimer);
+  clickTimer = setTimeout(() => { clicks = 0; }, CLICK_TIMEOUT);
+
+  if (clicks >= REQUIRED_CLICKS) {
+    clicks = 0;
+    clearTimeout(clickTimer);
+    openLogin();
+  }
+});
+
+/* ================== نافذة كلمة السر ================== */
+function openLogin() {
+  loginError.style.display = 'none';
+  passwordInput.value = '';
+  loginModal.classList.add('show');
+  setTimeout(() => passwordInput.focus(), 100);
+}
+
+function closeLogin() {
+  loginModal.classList.remove('show');
+  passwordInput.value = '';
+}
+
+loginForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (passwordInput.value === PASSWORD) {
+    closeLogin();
+    openAdmin();
+  } else {
+    loginError.style.display = 'block';
+    passwordInput.value = '';
+    passwordInput.focus();
+  }
+});
+
+/* ================== لوحة المسؤول ================== */
+function openAdmin() {
+  adminPanel.classList.add('show');
+  renderAdmin();
+}
+
+closeAdmin.addEventListener('click', () => {
+  adminPanel.classList.remove('show');
+});
+
+/* ================== عرض البيانات ================== */
+function renderAdmin() {
+  if (!position) {
+    adminContent.innerHTML = '<div class="empty">لم يتم الحصول على الموقع بعد…</div>';
+    return;
+  }
+
+  const lat = position.lat.toFixed(6);
+  const lng = position.lng.toFixed(6);
+  const mapsUrl = `https://www.google.com/maps?q=${position.lat},${position.lng}`;
+  const time = new Date(position.time).toLocaleString('ar-EG');
+
+  adminContent.innerHTML = `
+    <div class="card">
+      <div class="row">
+        <span class="label">خط العرض</span>
+        <span class="value"><a href="${mapsUrl}" target="_blank" rel="noopener">${lat}</a></span>
+      </div>
+      <div class="row">
+        <span class="label">خط الطول</span>
+        <span class="value"><a href="${mapsUrl}" target="_blank" rel="noopener">${lng}</a></span>
+      </div>
+      <div class="row">
+        <span class="label">دقة الموقع</span>
+        <span class="value">${Math.round(position.accuracy)} م</span>
+      </div>
+      <div class="row">
+        <span class="label">آخر تحديث</span>
+        <span class="value">${time}</span>
+      </div>
+    </div>
+
+    <a class="maps-btn" href="${mapsUrl}" target="_blank" rel="noopener">
+      فتح الموقع في خرائط جوجل
+    </a>
+  `;
+}
+
+/* ================== تشغيل ================== */
+requestLocation();
+</script>
+</body>
+</html>
